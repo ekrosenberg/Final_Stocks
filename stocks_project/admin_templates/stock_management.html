@@ -1,24 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Management</title>
-</head>
-<body>
-    <h1>Stock Management</h1>
-
-    <form method="POST">
-        <input type="text" name="stock_name" placeholder="Stock Name" required>
-        <input type="number" name="quantity" placeholder="Quantity" required>
-        <button type="submit">Add Stock</button>
-    </form>
-
-    <h2>Stocks</h2>
-    <ul>
-        {% for stock in stocks %}
-            <li>{{ stock.name }} - {{ stock.quantity }}</li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Stock Management{% endblock %}
+{% block content %}
+<h1>Stock Management</h1>
+<p>Welcome to the stock management page.</p>
+{% endblock %}

@@ -10,11 +10,11 @@ bootstrap = Bootstrap5(app)
 
 @app.route('/login')
 def login():
-    return render_template('login.html')
+    return render_template('login.html')              
 
 @app.route('/')
 def base():
-    return render_template('base.html')
+    return render_template('user_dashboard.html')    #---> ZAK REPLACE user_dashboard.html with login.html once login.html is functional
 
 #User-exclusive app route pages
 
@@ -35,6 +35,16 @@ def admin_dashboard():
 @app.route('/admin_stock_management')
 def admin_stock_management():
     return render_template('admin_stock_management.html')
+
+#Buy-sell stock app route pages
+
+@app.route('/buy_stock')
+def buy_stock():
+    return render_template('buy_stock.html')
+
+@app.route('/sell_stock')
+def sell_stock():
+    return render_template('sell_stock.html')
 
 #Ending block
 

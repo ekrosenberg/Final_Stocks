@@ -1,6 +1,62 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h1>Dashboard</h1>
-<p>Welcome to the user dashboard!</p>
+<div class="container">
+    <h1>Welcome to your Dashboard</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Buy Stocks</h2>
+            <form method="post" action="/buy_stock">
+                <div class="form-group">
+                    <label for="stockSymbol">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Buy</button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <h2>Sell Stocks</h2>
+            <form method="post" action="/sell_stock">
+                <div class="form-group">
+                    <label for="stockSymbolSell">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="stockSymbolSell" name="stockSymbolSell" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantitySell">Quantity:</label>
+                    <input type="number" class="form-control" id="quantitySell" name="quantitySell" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sell</button>
+            </form>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2>Stock Information</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Stock Symbol</th>
+                        <th>Company Name</th>
+                        <th>Current Price</th>
+                        <th>Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                    <tr>
+                        <td>{{ stock.symbol }}</td>
+                        <td>{{ stock.company_name }}</td>
+                        <td>{{ stock.current_price }}</td>
+                        <td>{{ stock.change }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -4,12 +4,13 @@ from flask import Flask, render_template
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import request
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 
 # config for db for users
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1010@localhost/flask_project' # make sure to put your own sql database logins
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/flask_project' # make sure to put your own sql database logins
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 

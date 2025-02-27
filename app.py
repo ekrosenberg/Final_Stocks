@@ -10,7 +10,7 @@ app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 
 # config for db for users
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1010@localhost/flask_project' # make sure to put your own sql database logins
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/flask_project' # make sure to put your own sql database logins
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 

@@ -9,7 +9,7 @@ app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 
 # config for db for users
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/flask_project' # make sure to put your own sql database logins
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1010@localhost/flask_project' # make sure to put your own sql database logins
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 
@@ -46,7 +46,6 @@ def login():
     return render_template("login.html")            
 
 @app.route('/')
-@login_required  # Restricts access to users not signed in
 def home():
     return render_template("login.html")
 
@@ -65,7 +64,6 @@ def register():
 
 # logout route added
 @app.route('/logout')
-@login_required
 def logout():
     logout_user()
     return redirect(url_for("login"))

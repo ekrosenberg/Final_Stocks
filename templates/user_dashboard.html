@@ -6,21 +6,21 @@
     <div class="row">
         <div class="col-md-6">
             <h2>Buy Stocks</h2>
-            <form method="post" action="/buy_stock">
-                <div class="form-group">
-                    <label for="stockSymbol">Stock Symbol:</label>
-                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Buy</button>
+            <form method="post"></form>
+            <div class="form-group">
+                <label for="stockSymbol">Stock Symbol:</label>
+                <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Buy</button>
             </form>
         </div>
         <div class="col-md-6">
             <h2>Sell Stocks</h2>
-            <form method="post" action="/sell_stock">
+            <form method="post">
                 <div class="form-group">
                     <label for="stockSymbolSell">Stock Symbol:</label>
                     <input type="text" class="form-control" id="stockSymbolSell" name="stockSymbolSell" required>
@@ -43,6 +43,24 @@
                         <th>Company Name</th>
                         <th>Current Price</th>
                         <th>Change</th>
+                    </tr>
+                    <tr>
+                        <td>AAPL</td>
+                        <td>Apple Inc.</td>
+                        <td>$150.00</td>
+                        <td>+1.25%</td>
+                    </tr>
+                    <tr>
+                        <td>GOOGL</td>
+                        <td>Alphabet Inc.</td>
+                        <td>$2800.00</td>
+                        <td>-0.50%</td>
+                    </tr>
+                    <tr>
+                        <td>AMZN</td>
+                        <td>Amazon.com Inc.</td>
+                        <td>$3400.00</td>
+                        <td>+0.75%</td>
                     </tr>
                 </thead>
                 <tbody>

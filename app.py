@@ -75,9 +75,9 @@ def logout():
 def user_dashboard():
     return render_template('user_dashboard.html')
 
-@app.route('/user_stock_management')
-def user_stock_management():
-    return render_template('user_stock_management.html')
+@app.route('/user_portfolio')
+def user_portfolio():
+    return render_template('user_portfolio.html')
 
 #Admin-exclusive app route pages
 

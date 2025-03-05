@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask import request
 from flask import redirect, url_for, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -78,9 +79,10 @@ def home():
 @app.route('/sign_up', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        hashed = generate_password_hash(request.form.get("password"), method='pbkdf2:sha256')
         user = Users(
             username=request.form.get("username"),
-            password=request.form.get("password"),  # password unhashed for now, as still adjusting settings and code
+            password=hashed,  # password is now hashed using wekzeugs hash functions
             role="user"  # user is default
         )
         db.session.add(user)
@@ -101,14 +103,33 @@ def logout():
 def user_dashboard():
     if request.method == "POST":
         action = request.form.get("action")
+        stock_symbol = request.form.get("stockSymbol")
+        quantity = int(request.form.get("quantity"))
+        stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
+        portfolio_entry = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
         if action == "buy":
-            stock_symbol = request.form.get("stockSymbol")
-            quantity = request.form.get("quantity")
+            if portfolio_entry:
+                portfolio_entry.quantity += quantity
+                portfolio_entry.purchase_price = stock.price
+            else:
+                new_entry = Portfolio(
+                    user_id=current_user.id,
+                    stock_id=stock.id,
+                    quantity=quantity,
+                    purchase_price=stock.price,
+                    current_price=stock.price
+                )
+                db.session.add(new_entry)
             flash(f"Stock {stock_symbol} bought successfully")
         elif action == "sell":
-            stock_symbol = request.form.get("stockSymbol")
-            quantity = request.form.get("quantity")
-            flash(f"Stock {stock_symbol} sold successfully")
+            if portfolio_entry and portfolio_entry.quantity >= quantity:
+                portfolio_entry.quantity -= quantity
+                if portfolio_entry.quantity == 0:
+                    db.session.delete(portfolio_entry)
+                flash(f"Stock {stock_symbol} sold successfully", "success")
+            else:
+                flash("Not enough shares to sell", "error")
+        db.session.commit()
     else:
         flash("Invalid action", "error")
     return render_template('user_dashboard.html')

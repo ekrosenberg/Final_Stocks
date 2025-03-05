@@ -3,36 +3,52 @@
 {% block content %}
 <div class="container">
     <h1>Welcome to your Dashboard</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Buy stock form -->
     <div class="row">
         <div class="col-md-6">
             <h2>Buy Stocks</h2>
-            <form method="post"></form>
-            <div class="form-group">
-                <label for="stockSymbol">Stock Symbol:</label>
-                <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
-            </div>
-            <div class="form-group">
-                <label for="quantity">Quantity:</label>
-                <input type="number" class="form-control" id="quantity" name="quantity" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Buy</button>
+            <form method="post">
+                <input type="hidden" name="action" value="buy">
+                <div class="form-group">
+                    <label for="stockSymbol">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Buy</button>
             </form>
         </div>
+
+        <!-- Sell stock form -->
         <div class="col-md-6">
             <h2>Sell Stocks</h2>
             <form method="post">
+                <input type="hidden" name="action" value="sell">
                 <div class="form-group">
-                    <label for="stockSymbolSell">Stock Symbol:</label>
-                    <input type="text" class="form-control" id="stockSymbolSell" name="stockSymbolSell" required>
+                    <label for="stockSymbol">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
                 </div>
                 <div class="form-group">
-                    <label for="quantitySell">Quantity:</label>
-                    <input type="number" class="form-control" id="quantitySell" name="quantitySell" required>
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Sell</button>
+                <button type="submit" class="btn btn-danger mt-2">Sell</button>
             </form>
         </div>
     </div>
+    
+    <!-- Stock Information -->
     <div class="row mt-4">
         <div class="col-md-12">
             <h2>Stock Information</h2>

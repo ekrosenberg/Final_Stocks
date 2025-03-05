@@ -2,22 +2,19 @@
 {% block title %}Login{% endblock %}
 {% block content %}
     <h1>Login</h1>
-    
-     <!-- form for user log in. -->
-    <form method="POST">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-    </form>
-    <nav>
-        <ul>
-            <li><a href="/sign_up">Create account</a></li>
-            {% if current_user.is_authenticated %}
-                <li><a href="/logout">Logout</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% if current_user.is_authenticated %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if current_user and current_user.is_authenticated %}
+        <p>You are already logged in as {{ current_user.username }}.</p>
+        <p><a href="/logout">Logout</a></p>
+
         <h1>Welcome, {{ current_user.username }}!</h1>
         {% if current_user.role == "admin" %}
             <h2>Admin Dashboard</h2>
@@ -26,7 +23,19 @@
             <h2>User Dashboard</h2>
             <p>This is visible only to users: Your profile info.</p>
         {% endif %}
+    
     {% else %}
-        <h1>You are not logged in</h1>
+        <!-- form for user log in. -->
+        <form method="POST" action="/login">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <nav>
+            <ul>
+                <li><a href="/sign_up">Create account</a></li>
+            </ul>
+        </nav>
     {% endif %}
+
 {% endblock %}

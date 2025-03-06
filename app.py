@@ -1,4 +1,4 @@
-#Initial imports
+# Python Imports
 
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap5
@@ -7,29 +7,31 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask import request
 from flask import redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+import random, math
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 
-# config for db for users
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/flask_project' # make sure to put your own sql database logins
+# Database Config
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1010@localhost/flask_project' # Edit SQL login for local machine
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
-
-# extensions for the database and user system
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# user model creation for db and login
+# User model creation for database and login
+
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
-    role = db.Column(db.String(50), default="user", nullable=False)  # "user" only, manually created "admin" accounts
+    role = db.Column(db.String(50), default="user", nullable=False)
     portfolio = db.relationship('Portfolio', backref='user', lazy=True)
 
-# stock model creation for db
+# Stock model creation for database
+
 class Stocks(db.Model):
     __tablename__ = 'stocks'
     id = db.Column(db.Integer, primary_key=True)
@@ -38,27 +40,34 @@ class Stocks(db.Model):
     price = db.Column(db.Numeric(10,2), nullable=False)
     portfolio = db.relationship("Portfolio", back_populates="stock")
     
-# portfolio model creation for db
+# Portfolio model creation for database
+
 class Portfolio(db.Model):
     __tablename__ = 'portfolio'
     portfolio_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Ensure Foreign Key Exists
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     purchase_price = db.Column(db.Numeric(10,2), nullable=False)
     current_price = db.Column(db.Numeric(10,2), nullable=False)
     stock = db.relationship('Stocks', back_populates='portfolio')
 
-# creates table for the db
+# Creates table for the database
+
 with app.app_context():
     db.create_all()
 
-# user loader to retrieve id numbers
+# User loader to retrieve id numbers
+
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(int(user_id))
 
-#Shared login HTML pages between users and admins
+#Shared default, login, sign-up, and logout HTML pages between users and admins
+
+@app.route('/')
+def home():
+    return render_template("login.html")
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -72,31 +81,26 @@ def login():
                 return redirect(url_for("user_dashboard"))
     return render_template("login.html")          
 
-@app.route('/')
-def home():
-    return render_template("login.html")
-
 @app.route('/sign_up', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         hashed = generate_password_hash(request.form.get("password"), method='pbkdf2:sha256')
         user = Users(
             username=request.form.get("username"),
-            password=hashed,  # password is now hashed using wekzeugs hash functions
-            role="user"  # user is default
+            password=hashed,
+            role="user"
         )
         db.session.add(user)
         db.session.commit()
         return redirect(url_for("login"))
     return render_template("sign_up.html")
 
-# logout route added
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for("login"))
 
-#User-exclusive app route pages
+#User exclusive HTML pages
 
 @app.route('/user_dashboard', methods=["GET", "POST"])
 @login_required
@@ -139,29 +143,19 @@ def user_dashboard():
 def user_portfolio():
     return render_template('user_portfolio.html')
 
-#Admin-exclusive app route pages
+#Admin exclusive HTML pages
 
 @app.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
+    #Add a conditional block that checks if admin role here to prevent security bug
     return render_template('admin_dashboard.html')
 
 @app.route('/admin_stock_management')
 @login_required
 def admin_stock_management():
+    #Add a conditional block that checks if admin role here to prevent security bug
     return render_template('admin_stock_management.html')
-
-#Buy-sell stock app route pages
-
-@app.route('/buy_stock')
-@login_required
-def buy_stock():
-    return render_template('buy_stock.html')
-
-@app.route('/sell_stock')
-@login_required
-def sell_stock():
-    return render_template('sell_stock.html')
 
 #Ending block
 

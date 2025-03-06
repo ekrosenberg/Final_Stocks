@@ -2,7 +2,7 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <div class="container">
-    <h1>Welcome to your <strong><span style="color: green;">Dashboard</span></strong></h1>
+    <h1>Welcome to <strong><span style="color: green;">SunDevil Stocks</span></strong></h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -48,10 +48,10 @@
         </div>
     </div>
     
-    <!-- Stock Information -->
+    <!-- Trending Stocks -->
     <div class="row mt-4">
         <div class="col-md-12">
-            <h2>Stock Information</h2>
+            <h2>Trending Stocks</h2>
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -61,19 +61,19 @@
                         <th>Change</th>
                     </tr>
                     <tr>
-                        <td>AAPL</td>
+                        <td>APL</td>
                         <td>Apple Inc.</td>
                         <td>$150.00</td>
                         <td>+1.25%</td>
                     </tr>
                     <tr>
-                        <td>GOOGL</td>
+                        <td>GOO</td>
                         <td>Alphabet Inc.</td>
                         <td>$2800.00</td>
                         <td>-0.50%</td>
                     </tr>
                     <tr>
-                        <td>AMZN</td>
+                        <td>AMZ</td>
                         <td>Amazon.com Inc.</td>
                         <td>$3400.00</td>
                         <td>+0.75%</td>

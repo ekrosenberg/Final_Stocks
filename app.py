@@ -78,7 +78,7 @@ def login():
             if user.role == "admin":
                 return redirect(url_for("admin_dashboard"))
             else:
-                return redirect(url_for("user_dashboard"))
+                return redirect(url_for("user_home"))
     return render_template("login.html")          
 
 @app.route('/sign_up', methods=["GET", "POST"])
@@ -102,9 +102,9 @@ def logout():
 
 #User exclusive HTML pages
 
-@app.route('/user_dashboard', methods=["GET", "POST"])
+@app.route('/user_home', methods=["GET", "POST"])
 @login_required
-def user_dashboard():
+def user_home():
     if request.method == "POST":
         action = request.form.get("action")
         stock_symbol = request.form.get("stockSymbol")
@@ -136,7 +136,7 @@ def user_dashboard():
         db.session.commit()
     else:
         flash("Invalid action", "error")
-    return render_template('user_dashboard.html')
+    return render_template('user_home.html')
 
 @app.route('/user_portfolio')
 @login_required

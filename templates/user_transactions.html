@@ -1,6 +1,52 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
+{% block title %}Transaction History{% endblock %}
 {% block content %}
-    <h2>User Transactions</h2>
-    <!-- Add your user transaction content here -->
+<div class="container mt-4">
+  <h1 class="mb-4" style="color: #8C1D40;">Transaction History</h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead style="background-color: #8C1D40; color: #FFC627;">
+        <tr>
+          <th>Transaction ID</th>
+          <th>Type</th>
+          <th>Timestamp</th>
+          <th>Status</th>
+          <th>Amount</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in transactions %}
+        <tr>
+          <td>{{ transaction.id }}</td>
+          <td>{{ transaction.type }}</td>
+          <td>{{ transaction.timestamp }}</td>
+          <td>
+            {% if transaction.status == "Completed" %}
+              <span class="badge bg-success">{{ transaction.status }}</span>
+            {% elif transaction.status == "Pending" %}
+              <span class="badge bg-warning text-dark">{{ transaction.status }}</span>
+            {% elif transaction.status == "Failed" %}
+              <span class="badge bg-danger">{{ transaction.status }}</span>
+            {% else %}
+              <span class="badge bg-secondary">{{ transaction.status }}</span>
+            {% endif %}
+          </td>
+          <td>${{ transaction.amount }}</td>
+          <td>{{ transaction.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

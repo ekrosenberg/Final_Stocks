@@ -2,7 +2,6 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <div class="container">
-    <h1>Welcome to <strong><span style="color: green;">SunDevil Stocks</span></strong></h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -16,31 +15,47 @@
     <div class="row mt-4">
         <div class="col-md-12">
             <h2>Trending Stocks</h2>
-            <table class="table table-striped">
-                <thead>
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
                     <tr>
                         <th>Stock Symbol</th>
                         <th>Company Name</th>
-                        <th>Current Price</th>
-                        <th>Change</th>
+                        <th>Price</th>
+                        <th>Volume</th>
+                        <th>Market Cap</th>
+                        <th>Opening Price</th>
+                        <th>Day High</th>
+                        <th>Day Low</th>
                     </tr>
                     <tr>
                         <td>APL</td>
                         <td>Apple Inc.</td>
                         <td>$150.00</td>
                         <td>+1.25%</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
                     </tr>
                     <tr>
                         <td>GOOGL</td>
                         <td>Google.</td>
                         <td>$2800.00</td>
                         <td>-0.50%</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
                     </tr>
                     <tr>
                         <td>AMZ</td>
                         <td>Amazon.com Inc.</td>
                         <td>$3400.00</td>
                         <td>+0.75%</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,8 +63,12 @@
                     <tr>
                         <td>{{ stock.symbol }}</td>
                         <td>{{ stock.company_name }}</td>
-                        <td>{{ stock.current_price }}</td>
-                        <td>{{ stock.change }}</td>
+                        <td>${{ stock.current_price }}</td>
+                        <td>{{ stock.volume }}</td>
+                        <td>${{ stock.market_cap }}</td>
+                        <td>${{ stock.opening_price }}</td>
+                        <td>${{ stock.day_high }}</td>
+                        <td>${{ stock.day_low }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

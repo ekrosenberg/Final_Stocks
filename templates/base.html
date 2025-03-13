@@ -8,12 +8,37 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>{% block title %}{% endblock %} - SunDevil Stocks</title>
+    <style>
+        body {
+          background-color: #f8f9fa;
+          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-brand {
+          font-size: 1.5rem;
+          letter-spacing: 0.05rem;
+        }
+        .navbar-nav .nav-link {
+          color: #ffffff !important;
+          font-weight: 500;
+          transition: color 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover {
+          color: #FFC627 !important; 
+        }
+        .container {
+          margin-top: 2rem;
+        }
+        footer {
+          padding: 1rem 0;
+          margin-top: 3rem;
+        }
+      </style>
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><span style="color: yellow; font-weight: bold;">Sun</span><span style="color: red; font-weight: bold;">Devil</span> <span style="color: lightgreen; font-weight: bold;">Stocks</span></a>
+            <a class="navbar-brand" href="#"><span style="color: gold; font-weight: bold;">Sun</span><span style="color: red; font-weight: bold;">Devil</span> <span style="color: white; font-weight: bold;">Stocks</span></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -22,7 +47,7 @@
                     {% if current_user.is_authenticated %}
                         {% if current_user.role == 'admin' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                                <a class="nav-link" href="{{ url_for('admin_dashboard') }}" style="color: white;">Admin Dashboard</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('admin_stock_management') }}">Admin Stock Management</a>

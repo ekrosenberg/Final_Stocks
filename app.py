@@ -52,6 +52,18 @@ class Portfolio(db.Model):
     current_price = db.Column(db.Numeric(10,2), nullable=False)
     stock = db.relationship('Stocks', back_populates='portfolio')
 
+# Transactions model creation for database
+
+class Transactions(db.Model):
+    __tablename__ = 'transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    stock_symbol = db.Column(db.String(10), nullable=False)
+    transaction_type = db.Column(db.String(10), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Numeric(10,2), nullable=False)
+    total_amount = db.Column(db.Numeric(10,2), nullable=False)
+
 # Creates table for the database
 
 with app.app_context():
@@ -191,7 +203,8 @@ def user_trades():
 @app.route('/user_transactions')
 @login_required
 def user_transactions():
-    return render_template('user_transactions.html')
+    transactions = Transactions.query.filter_by(user_id=current_user.id).all()
+    return render_template('user_transactions.html', transactions=transactions)
 
 #Admin exclusive HTML pages
 

@@ -1,20 +1,92 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h2>Sign Up</h2>
-<form method="post">
+<!-- Sign Up Form -->
+<style>
+  body {
+    background: #f9f9f9;
+    font-family: Arial, sans-serif;
+  }
+  .center-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .center-container h2 {
+    text-align: center;
+    color: #8C1D40; 
+    margin-bottom: 20px;
+  }
+  .center-container form div {
+    margin-bottom: 15px;
+  }
+  .center-container label {
+    display: block;
+    margin-bottom: 5px;
+    color: #8C1D40; 
+  }
+  .center-container input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .center-container input:focus {
+    border-color: #8C1D40;
+    outline: none;
+    box-shadow: 0 0 5px rgba(140, 29, 64, 0.3);
+  }
+  .center-container button {
+    width: 100%;
+    padding: 12px;
+    background-color: #8C1D40; 
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .center-container button:hover {
+    background-color: #7a1737; 
+  }
+  .center-container p {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .center-container a {
+    color: #FFC627; 
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .center-container a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="center-container">
+  <h2>Sign Up</h2>
+  <form method="post">
     <div>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
+      <label for="first_name">Full Name:</label>
+      <input type="text" id="first_name" name="first_name" required>
     </div>
     <div>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
     </div>
     <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
     </div>
     <button type="submit">Sign Up</button>
-</form>
+  </form>
+  <p>Already have an account? <a href="/login">Log In</a></p>
+</div>
 {% endblock %}

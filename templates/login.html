@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Login{% endblock %}
 {% block content %}
-    <h1>Login</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -11,31 +10,57 @@
         {% endif %}
     {% endwith %}
 
+    <style>
+        .login-header {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .btn-asu {
+          background-color: #8C1D40;
+          border-color: #8C1D40;
+          color: #fff;
+        }
+        .btn-asu:hover {
+          background-color: #7a1436;
+          border-color: #7a1436;
+        }
+        .login-card {
+          max-width: 500px;
+          margin: 0 auto;
+        }
+        a {
+          color: #8C1D40;
+        }
+      </style>
     {% if current_user and current_user.is_authenticated %}
-        <p>You are already logged in as {{ current_user.username }}.</p>
-        <p><a href="/logout">Logout</a></p>
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Welcome, {{ current_user.username }}!</h1>
+            </div>
+            <p>You are already logged in as {{ current_user.username }}.</p>
+            <p><a href="/logout">Logout</a></p>
 
-        <h1>Welcome, {{ current_user.username }}!</h1>
-        {% if current_user.role == "admin" %}
-            <h2>Admin Dashboard</h2>
-            <p>This is visible only to admins: Manage users, settings, etc.</p>
-        {% else %}
-            <h2>User Dashboard</h2>
-            <p>This is visible only to users: Your profile info.</p>
-        {% endif %}
-    
+            {% if current_user.role == "admin" %}
+                <h2>Admin Dashboard</h2>
+                <p>This is visible only to admins: Manage users, settings, etc.</p>
+            {% else %}
+                <h2>User Dashboard</h2>
+                <p>This is visible only to users: Your profile info.</p>
+            {% endif %}
+        </div>
     {% else %}
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Login</h1>
+            </div>
         <!-- form for user log in. -->
-        <form method="POST" action="/login">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <nav>
-            <ul>
-                <li><a href="/sign_up">Create account</a></li>
-            </ul>
-        </nav>
+            <form method="POST" action="/login">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <br>
+            <p>Don't have an account? <a href="/sign_up">Sign Up</a></p>
+        </div>
     {% endif %}
-
 {% endblock %}

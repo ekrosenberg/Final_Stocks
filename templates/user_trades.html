@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Transactions{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Welcome to <strong><span style="color: green;">SunDevil Stocks</span></strong></h1>
+    <style>
+        .btn-primary {
+                background-color: maroon !important;
+                border-color: maroon !important;
+        }
+        .btn-danger {
+                background-color: gold !important;
+                border-color: gold !important;
+                color: #000 !important;
+        }
+        .btn-success {
+                background-color: maroon !important;
+                border-color: maroon !important;
+        }
+    </style>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            {% if category == "warning" and session.get("pending_transaction") %}
+                <form method="post" class="d-inline">
+                    <input type="hidden" name="action" value="confirm_purchase">
+                    <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                </form>
+                <form method="post" class="d-inline">
+                    <input type="hidden" name="action" value="cancel_purchase">
+                    <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                </form>
+            {% endif %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <br>      
+    <!-- Buy stock form -->
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Buy Stocks</h2>
+            <form method="post">
+                <input type="hidden" name="action" value="buy">
+                <div class="form-group">
+                    <label for="stockSymbol">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Buy</button>
+            </form>
+        </div>
+
+        <!-- Sell stock form -->
+        <div class="col-md-6">
+            <h2>Sell Stocks</h2>
+            <form method="post">
+                <input type="hidden" name="action" value="sell">
+                <div class="form-group">
+                    <label for="stockSymbol">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                </div>
+                <button type="submit" class="btn btn-danger mt-2">Sell</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Available Stocks -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2>Available Stocks</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Stock Symbol</th>
+                        <th>Company Name</th>
+                        <th>Current Price</th>
+                        <th>Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                    <tr>
+                        <td>{{ stock.symbol }}</td>
+                        <td>{{ stock.company_name }}</td>
+                        <td>{{ stock.current_price }}</td>
+                        <td>{{ stock.change }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>    
+{% endblock %}

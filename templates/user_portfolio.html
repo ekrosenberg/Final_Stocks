@@ -1,41 +1,81 @@
 {% extends "base.html" %}
-{% block title %}portfolio{% endblock %}
+{% block title %}Portfolio{% endblock %}
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h1>Portfolio</h1>
-        <p>Welcome to your <strong><span style="color: green;">stock</span></strong> portfolio.</p>
+<div class="container">
+    <h1>Welcome to your <strong><span style="color: green;">Stock Trading</span></strong> Portfolio.</h1>
+    <br>    
+    <!-- Portfolio Overview -->
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Your Portfolio</h2>
+            <p><strong>Cash Balance:</strong> ${{ user.cash_balance }}</p>
+            <p><strong>Total Portfolio Value:</strong> ${{ user.total_value }}</p>
         </div>
     </div>
-    <div class="row">
+
+    <!-- Owned Stocks -->
+    <div class="row mt-4">
         <div class="col-md-12">
-        <h2>Your Stocks</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Stock Name</th>
-                    <th>Price</th>
-                    <th>Change</th>
-                    <th>Market Date</th>
-                    <th>Market Hours</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for stock in stocks %}
-                <tr>
-                    <td>{{ stock.name }}</td>
-                    <td>{{ stock.price }}</td>
-                    <td>{{ stock.change }}</td>
-                    <td>{{ stock.market_date }}</td>
-                    <td>{{ stock.market_hours }}</td>
-                    <td>
-                        <a href="{{ url_for('edit_stock', id=stock.id) }}" class="btn btn-primary">Edit</a>
-                        <a href="{{ url_for('delete_stock', id=stock.id) }}" class="btn btn-danger">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <h2>Your Stocks</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Stock Name</th>
+                        <th>Quantity</th>
+                        <th>Current Price</th>
+                        <th>Total Value</th>
+                        <th>Change</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in user.stocks %}
+                    <tr>
+                        <td>{{ stock.name }}</td>
+                        <td>{{ stock.quantity }}</td>
+                        <td>${{ stock.current_price }}</td>
+                        <td>${{ stock.total_value }}</td>
+                        <td>{{ stock.change }}%</td>
+                        <td>
+                            <a href="{{ url_for('trade', stock_id=stock.id) }}" class="btn btn-primary">Trade</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <!-- Transaction History -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2>Transaction History</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Stock</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in user.transactions %}
+                    <tr>
+                        <td>{{ transaction.date }}</td>
+                        <td>{{ transaction.stock_name }}</td>
+                        <td>{{ transaction.type }}</td>
+                        <td>{{ transaction.quantity }}</td>
+                        <td>${{ transaction.price }}</td>
+                        <td>${{ transaction.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
 {% endblock %}

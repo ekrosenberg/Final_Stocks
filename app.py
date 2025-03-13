@@ -1,6 +1,6 @@
 # Python Imports
 
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -14,7 +14,7 @@ bootstrap = Bootstrap5(app)
 
 # Database Config
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1010@localhost/flask_project' # Edit SQL login for local machine
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/flask_project' # Edit SQL login for local machine
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key'
 db = SQLAlchemy(app)
@@ -78,7 +78,7 @@ def login():
             if user.role == "admin":
                 return redirect(url_for("admin_dashboard"))
             else:
-                return redirect(url_for("user_home"))
+                return redirect(url_for("user_portfolio"))
     return render_template("login.html")          
 
 @app.route('/sign_up', methods=["GET", "POST"])
@@ -105,43 +105,93 @@ def logout():
 @app.route('/user_home', methods=["GET", "POST"])
 @login_required
 def user_home():
-    if request.method == "POST":
-        action = request.form.get("action")
-        stock_symbol = request.form.get("stockSymbol")
-        quantity = int(request.form.get("quantity"))
-        stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
-        portfolio_entry = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
-        if action == "buy":
-            if portfolio_entry:
-                portfolio_entry.quantity += quantity
-                portfolio_entry.purchase_price = stock.price
-            else:
-                new_entry = Portfolio(
-                    user_id=current_user.id,
-                    stock_id=stock.id,
-                    quantity=quantity,
-                    purchase_price=stock.price,
-                    current_price=stock.price
-                )
-                db.session.add(new_entry)
-            flash(f"Stock {stock_symbol} bought successfully")
-        elif action == "sell":
-            if portfolio_entry and portfolio_entry.quantity >= quantity:
-                portfolio_entry.quantity -= quantity
-                if portfolio_entry.quantity == 0:
-                    db.session.delete(portfolio_entry)
-                flash(f"Stock {stock_symbol} sold successfully", "success")
-            else:
-                flash("Not enough shares to sell", "error")
-        db.session.commit()
-    else:
-        flash("Invalid action", "error")
     return render_template('user_home.html')
 
 @app.route('/user_portfolio')
 @login_required
 def user_portfolio():
-    return render_template('user_portfolio.html')
+    return render_template('user_portfolio.html', user=current_user)
+
+@app.route('/user_trades', methods=["GET", "POST"])
+@login_required
+def user_trades():
+    if request.method == "POST":
+        action = request.form.get("action")
+        stock_symbol = request.form.get("stockSymbol").upper()
+        quantity = int(request.form.get("quantity"))
+
+        stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
+
+        if not stock:
+            flash("Stock not found. Please enter a valid stock symbol.", "danger")
+            return redirect(url_for("user_trades"))
+
+        total_price = stock.price * quantity
+
+        if action == "buy":
+
+            session["pending_transaction"] = {
+                "action": "buy",
+                "stock_symbol": stock_symbol,
+                "quantity": quantity,
+                "total_price": float(total_price)
+            }
+
+            flash(
+                f"Are you sure you want to buy {quantity} shares of {stock_symbol} for ${total_price:.2f}?",
+                "warning"
+            )
+            return redirect(url_for("user_trades"))
+
+        elif action == "confirm_purchase":
+            transaction = session.get("pending_transaction")
+
+            if not transaction:
+                flash("Transaction not found. Please try again.", "danger")
+                return redirect(url_for("user_trades"))
+
+            stock_symbol = transaction.get("stock_symbol")
+            quantity = transaction.get("quantity")
+            total_price = transaction.get("total_price")
+
+            stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
+            if not stock:
+                flash("Stock no longer available.", "danger")
+                return redirect(url_for("user_trades"))
+
+            if current_user.cash_balance >= total_price:
+                current_user.cash_balance -= total_price
+
+                new_transaction = Transactions(
+                    user_id=current_user.id,
+                    stock_symbol=stock_symbol,
+                    transaction_type="buy",
+                    quantity=quantity,
+                    price=stock.price,
+                    total_amount=total_price
+                )
+                db.session.add(new_transaction)
+                db.session.commit()
+
+                flash(f"Successfully bought {quantity} shares of {stock_symbol}!", "success")
+            else:
+                flash("Insufficient funds to complete the purchase.", "danger")
+
+            session.pop("pending_transaction", None)
+            return redirect(url_for("user_trades"))
+
+        elif action == "cancel_purchase":
+            session.pop("pending_transaction", None)
+            flash("Purchase canceled.", "info")
+            return redirect(url_for("user_trades"))
+
+    stocks = Stocks.query.all()
+    return render_template("user_trades.html", stocks=stocks)
+
+@app.route('/user_transactions')
+@login_required
+def user_transactions():
+    return render_template('user_transactions.html')
 
 #Admin exclusive HTML pages
 

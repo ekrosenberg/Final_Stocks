@@ -12,42 +12,6 @@
       {% endif %}
     {% endwith %}
 
-    <!-- Buy stock form -->
-    <div class="row">
-        <div class="col-md-6">
-            <h2>Buy Stocks</h2>
-            <form method="post">
-                <input type="hidden" name="action" value="buy">
-                <div class="form-group">
-                    <label for="stockSymbol">Stock Symbol:</label>
-                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" required>
-                </div>
-                <button type="submit" class="btn btn-primary mt-2">Buy</button>
-            </form>
-        </div>
-
-        <!-- Sell stock form -->
-        <div class="col-md-6">
-            <h2>Sell Stocks</h2>
-            <form method="post">
-                <input type="hidden" name="action" value="sell">
-                <div class="form-group">
-                    <label for="stockSymbol">Stock Symbol:</label>
-                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" required>
-                </div>
-                <button type="submit" class="btn btn-danger mt-2">Sell</button>
-            </form>
-        </div>
-    </div>
-    
     <!-- Trending Stocks -->
     <div class="row mt-4">
         <div class="col-md-12">
@@ -67,8 +31,8 @@
                         <td>+1.25%</td>
                     </tr>
                     <tr>
-                        <td>GOO</td>
-                        <td>Alphabet Inc.</td>
+                        <td>GOOGL</td>
+                        <td>Google.</td>
                         <td>$2800.00</td>
                         <td>-0.50%</td>
                     </tr>

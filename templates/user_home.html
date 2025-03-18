@@ -21,29 +21,20 @@
                         <th>Stock Symbol</th>
                         <th>Company Name</th>
                         <th>Price</th>
-                        <th>Volume</th>
-                        <th>Market Cap</th>
-                        <th>Opening Price</th>
-                        <th>Day High</th>
                         <th>Day Low</th>
+                        <th>Day High</th>
                     </tr>
                     <tr>
                         <td>APL</td>
                         <td>Apple Inc.</td>
                         <td>$150.00</td>
-                        <td>+1.25%</td>
-                        <td>N/A</td>
-                        <td>N/A</td>
                         <td>N/A</td>
                         <td>N/A</td>
                     </tr>
                     <tr>
-                        <td>GOOGL</td>
+                        <td>GGL</td>
                         <td>Google.</td>
                         <td>$2800.00</td>
-                        <td>-0.50%</td>
-                        <td>N/A</td>
-                        <td>N/A</td>
                         <td>N/A</td>
                         <td>N/A</td>
                     </tr>
@@ -51,9 +42,6 @@
                         <td>AMZ</td>
                         <td>Amazon.com Inc.</td>
                         <td>$3400.00</td>
-                        <td>+0.75%</td>
-                        <td>N/A</td>
-                        <td>N/A</td>
                         <td>N/A</td>
                         <td>N/A</td>
                     </tr>
@@ -61,14 +49,11 @@
                 <tbody>
                     {% for stock in stocks %}
                     <tr>
-                        <td>{{ stock.symbol }}</td>
-                        <td>{{ stock.company_name }}</td>
-                        <td>${{ stock.current_price }}</td>
-                        <td>{{ stock.volume }}</td>
-                        <td>${{ stock.market_cap }}</td>
-                        <td>${{ stock.opening_price }}</td>
-                        <td>${{ stock.day_high }}</td>
-                        <td>${{ stock.day_low }}</td>
+                        <td>{{ stocks.ticker_symbol }}</td>
+                        <td>{{ stocks.name }}</td>
+                        <td>${{ portfolio.current_price }}</td>
+                        <td>${{ stocks.day_low }}</td>
+                        <td>${{ stocks.day_high }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

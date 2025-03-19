@@ -46,12 +46,12 @@
             <form method="post">
                 <input type="hidden" name="action" value="buy">
                 <div class="form-group">
-                    <label for="stockSymbol">Stock Symbol:</label>
-                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
+                    <label for="buyStockSymbol">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="buyStockSymbol" name="stockSymbol" required>
                 </div>
                 <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                    <label for="buyQuantity">Quantity:</label>
+                    <input type="number" class="form-control" id="buyQuantity" name="buyQuantity" required>
                 </div>
                 <button type="submit" class="btn btn-primary mt-2">Buy</button>
             </form>
@@ -63,12 +63,12 @@
             <form method="post">
                 <input type="hidden" name="action" value="sell">
                 <div class="form-group">
-                    <label for="stockSymbol">Stock Symbol:</label>
-                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" required>
+                    <label for="sellStockSymbol">Stock Symbol:</label>
+                    <input type="text" class="form-control" id="sellStockSymbol" name="stockSymbol" required>
                 </div>
                 <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                    <label for="sellQuantity">Quantity:</label>
+                    <input type="number" class="form-control" id="sellQuantity" name="sellQuantity" required>
                 </div>
                 <button type="submit" class="btn btn-danger mt-2">Sell</button>
             </form>
@@ -91,13 +91,15 @@
                 <tbody>
                     {% for stock in stocks %}
                     <tr>
-                        <td>{{ stock.symbol }}</td>
-                        <td>{{ stock.company_name }}</td>
-                        <td>{{ stock.current_price }}</td>
+                        <td>{{ stock.ticker_symbol }}</td>
+                        <td>{{ stock.name }}</td>
+                        <td>{{ stock.price }}</td>
                         <td>{{ stock.change }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>    
+        </div>
+    </div>
+</div>
 {% endblock %}

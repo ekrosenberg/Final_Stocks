@@ -62,14 +62,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for transaction in user.transactions %}
+                    {% for transaction in transactions %}
                     <tr>
                         <td>{{ transaction.date }}</td>
-                        <td>{{ transaction.stock_name }}</td>
-                        <td>{{ transaction.type }}</td>
+                        <td>{{ transaction.stock_symbol }}</td>
+                        <td>{{ transaction.transaction_type }}</td>
                         <td>{{ transaction.quantity }}</td>
                         <td>${{ transaction.price }}</td>
-                        <td>${{ transaction.total }}</td>
+                        <td>${{ transaction.total_amount }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

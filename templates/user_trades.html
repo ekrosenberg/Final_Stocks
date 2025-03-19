@@ -79,22 +79,20 @@
     <div class="row mt-4">
         <div class="col-md-12">
             <h2>Available Stocks</h2>
-            <table class="table table-striped">
-                <thead>
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
                     <tr>
                         <th>Stock Symbol</th>
                         <th>Company Name</th>
                         <th>Current Price</th>
-                        <th>Change</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for stock in stocks %}
                     <tr>
-                        <td>{{ stock.ticker_symbol }}</td>
                         <td>{{ stock.name }}</td>
-                        <td>{{ stock.price }}</td>
-                        <td>{{ stock.change }}</td>
+                        <td>{{ stock.ticker_symbol }}</td>
+                        <td>${{ stock.price }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

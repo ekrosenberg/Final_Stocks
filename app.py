@@ -8,8 +8,9 @@ from flask import request
 from flask import redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import random, math
+from decimal import Decimal
 from datetime import datetime
-
+import time
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -40,7 +41,8 @@ class Stocks(db.Model):
     name = db.Column(db.String(255), unique=True, nullable=False)
     ticker_symbol = db.Column(db.String(10), unique=True, nullable=False)
     price = db.Column(db.Numeric(10,2), nullable=False)
-    portfolio = db.relationship("Portfolio", back_populates="stock")
+    day_high = db.Column(db.Numeric(10,2), nullable=False)
+    day_low = db.Column(db.Numeric(10,2), nullable=False)
     
 # Portfolio model creation for database
 
@@ -52,7 +54,6 @@ class Portfolio(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     purchase_price = db.Column(db.Numeric(10,2), nullable=False)
     current_price = db.Column(db.Numeric(10,2), nullable=False)
-    stock = db.relationship('Stocks', back_populates='portfolio')
 
 # Transactions model creation for database
 
@@ -76,10 +77,19 @@ class Balance(db.Model):
 
     user = db.relationship('Users', backref=db.backref('balance', uselist=False))
 
+#Price Random Generator / Auto-Triggers on Startup
+
+def randomizer():
+    stocks = Stocks.query.all()
+    for stock in stocks:
+        stock.price += Decimal(random.uniform(-250, 250))
+    db.session.commit()
+
 # Creates table for the database
 
 with app.app_context():
     db.create_all()
+    randomizer()  
 
 # User loader to retrieve id numbers
 
@@ -131,9 +141,10 @@ def logout():
 #User exclusive HTML pages
 
 @app.route('/user_home', methods=["GET", "POST"])
-@login_required
 def user_home():
-    return render_template('user_home.html')
+    stocks = Stocks.query.all()
+    flash("The stock market has been updated!", "info")
+    return render_template('user_home.html', stocks=stocks)
 
 @app.route('/user_portfolio')
 @login_required

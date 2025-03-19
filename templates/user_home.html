@@ -20,40 +20,15 @@
                     <tr>
                         <th>Stock Symbol</th>
                         <th>Company Name</th>
-                        <th>Price</th>
-                        <th>Day Low</th>
-                        <th>Day High</th>
-                    </tr>
-                    <tr>
-                        <td>APL</td>
-                        <td>Apple Inc.</td>
-                        <td>$150.00</td>
-                        <td>N/A</td>
-                        <td>N/A</td>
-                    </tr>
-                    <tr>
-                        <td>GGL</td>
-                        <td>Google.</td>
-                        <td>$2800.00</td>
-                        <td>N/A</td>
-                        <td>N/A</td>
-                    </tr>
-                    <tr>
-                        <td>AMZ</td>
-                        <td>Amazon.com Inc.</td>
-                        <td>$3400.00</td>
-                        <td>N/A</td>
-                        <td>N/A</td>
+                        <th>Current Price</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for stock in stocks %}
                     <tr>
-                        <td>{{ stocks.ticker_symbol }}</td>
-                        <td>{{ stocks.name }}</td>
-                        <td>${{ portfolio.current_price }}</td>
-                        <td>${{ stocks.day_low }}</td>
-                        <td>${{ stocks.day_high }}</td>
+                        <td>{{ stock.name }}</td>
+                        <td>{{ stock.ticker_symbol }}</td>
+                        <td>${{ stock.price }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

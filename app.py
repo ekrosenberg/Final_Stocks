@@ -12,6 +12,7 @@ from decimal import Decimal
 from datetime import datetime
 import time
 from decimal import Decimal
+import threading
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -80,23 +81,36 @@ class Balance(db.Model):
 
     user = db.relationship('Users', backref=db.backref('balance', uselist=False))
 
-#Price Random Generator / Auto-Triggers on Startup
+#Price Random Generator / Auto-Triggers on Startup ($-250 --> $250 price)
 
 def randomizer():
-    stocks = Stocks.query.all()
-    for stock in stocks:
-        price_change = Decimal(random.uniform(-250, 250))
-        new_price = stock.price + price_change
+    with app.app_context():
+        stocks = Stocks.query.all()
+        for stock in stocks:
+            price_change = Decimal(random.uniform(-250, 250))
+            stock.price = max(stock.price + price_change, Decimal("1.00"))
 
-        #Ensures the price never goes negative.
-        stock.price = max(new_price, Decimal("1.00"))
-    db.session.commit()
+        db.session.commit()
+
+#Price Random Generator / Auto-Triggers every 10s ($-0.09 --> $0.09 price)
+
+def randomizer2():
+    with app.app_context():
+        stocks = Stocks.query.all()
+        for stock in stocks:
+            price_change = Decimal(random.uniform(-0.09, 0.09))
+            stock.price = max(stock.price + price_change, Decimal("1.00"))
+
+        db.session.commit()
+
+    threading.Timer(10, randomizer2).start()
 
 # Creates table for the database
 
 with app.app_context():
     db.create_all()
-    randomizer()  
+    randomizer()
+    randomizer2()  
 
 # User loader to retrieve id numbers
 
@@ -430,4 +444,6 @@ def admin_stock_management():
 #Ending block
 
 if __name__ == '__main__':
+    randomizer()
+    randomizer2()
     app.run(debug=True)

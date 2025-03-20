@@ -16,10 +16,11 @@ app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 
 # Database Config
+app.config['SECRET_KEY'] = 'your-secret-key'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/flask_project' # Edit SQL login for local machine
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key'
+
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -205,6 +206,8 @@ def user_trades():
                 "total_price": float(total_price)
             }
 
+            session.modified = True
+
             flash(
                 f"Are you sure you want to buy {quantity} shares of {stock_symbol} for ${total_price:.2f}?",
                 "warning"
@@ -269,6 +272,8 @@ def user_trades():
                 "quantity": quantity,
                 "total_price": float(total_price)
             }
+
+            session.modified = True
 
             flash(f"Are you sure you want to sell {quantity} shares of {stock_symbol} for ${total_price:.2f}?", "warning")
             return redirect(url_for("user_trades"))

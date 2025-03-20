@@ -18,31 +18,21 @@
         <tr>
           <th>Transaction ID</th>
           <th>Type</th>
-          <th>Timestamp</th>
-          <th>Status</th>
+          <th>Date</th>
+          <th>Stock</th>
           <th>Amount</th>
-          <th>Description</th>
+          <th>Quantity</th>
         </tr>
       </thead>
       <tbody>
         {% for transaction in transactions %}
         <tr>
           <td>{{ transaction.id }}</td>
-          <td>{{ transaction.type }}</td>
-          <td>{{ transaction.timestamp }}</td>
-          <td>
-            {% if transaction.status == "Completed" %}
-              <span class="badge bg-success">{{ transaction.status }}</span>
-            {% elif transaction.status == "Pending" %}
-              <span class="badge bg-warning text-dark">{{ transaction.status }}</span>
-            {% elif transaction.status == "Failed" %}
-              <span class="badge bg-danger">{{ transaction.status }}</span>
-            {% else %}
-              <span class="badge bg-secondary">{{ transaction.status }}</span>
-            {% endif %}
-          </td>
-          <td>${{ transaction.amount }}</td>
-          <td>{{ transaction.description }}</td>
+          <td>{{ transaction.transaction_type }}</td>
+          <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>{{ transaction.stock_symbol }}</td>
+          <td>${{ "%.2f"|format(transaction.total_amount) }}</td>
+          <td>{{ transaction.quantity }}</td>
         </tr>
         {% endfor %}
       </tbody>

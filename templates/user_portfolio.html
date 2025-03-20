@@ -3,13 +3,13 @@
 {% block content %}
 <div class="container">
     <h1>Welcome to your <strong><span style="color: green;">Stock Trading</span></strong> Portfolio.</h1>
-    <br>    
+    <br>
     <!-- Portfolio Overview -->
     <div class="row">
         <div class="col-md-6">
             <h2>Your Portfolio</h2>
-            <p><strong>Cash Balance:</strong> ${{ user.cash_balance }}</p>
-            <p><strong>Total Portfolio Value:</strong> ${{ user.total_value }}</p>
+            <p><strong>Cash Balance:</strong> ${{ cash_balance }}</p>
+            <p><strong>Total Portfolio Value:</strong> ${{ portfolio_total }}</p>
         </div>
     </div>
 
@@ -24,21 +24,15 @@
                         <th>Quantity</th>
                         <th>Current Price</th>
                         <th>Total Value</th>
-                        <th>Change</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for stock in user.stocks %}
+                    {% for entry in portfolio %}
                     <tr>
-                        <td>{{ stock.name }}</td>
-                        <td>{{ stock.quantity }}</td>
-                        <td>${{ stock.current_price }}</td>
-                        <td>${{ stock.total_value }}</td>
-                        <td>{{ stock.change }}%</td>
-                        <td>
-                            <a href="{{ url_for('trade', stock_id=stock.id) }}" class="btn btn-primary">Trade</a>
-                        </td>
+                        <td>{{ entry.stock.name }}</td>
+                        <td>{{ entry.quantity }}</td>
+                        <td>${{ entry.current_price }}</td>
+                        <td>${{ entry.quantity * entry.current_price }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -64,7 +58,7 @@
                 <tbody>
                     {% for transaction in transactions %}
                     <tr>
-                        <td>{{ transaction.date }}</td>
+                        <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                         <td>{{ transaction.stock_symbol }}</td>
                         <td>{{ transaction.transaction_type }}</td>
                         <td>{{ transaction.quantity }}</td>
@@ -76,6 +70,5 @@
             </table>
         </div>
     </div>
-
 </div>
 {% endblock %}

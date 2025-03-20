@@ -32,23 +32,6 @@
           color: #8C1D40;
         }
       </style>
-    {% if current_user and current_user.is_authenticated %}
-        <div class="login-card">
-            <div class="login-header">
-                <h1>Welcome, {{ current_user.username }}!</h1>
-            </div>
-            <p>You are already logged in as {{ current_user.username }}.</p>
-            <p><a href="/logout">Logout</a></p>
-
-            {% if current_user.role == "admin" %}
-                <h2>Admin Dashboard</h2>
-                <p>This is visible only to admins: Manage users, settings, etc.</p>
-            {% else %}
-                <h2>User Dashboard</h2>
-                <p>This is visible only to users: Your profile info.</p>
-            {% endif %}
-        </div>
-    {% else %}
         <div class="login-card">
             <div class="login-header">
                 <h1>Login</h1>
@@ -62,5 +45,4 @@
             <br>
             <p>Don't have an account? <a href="/sign_up">Sign Up</a></p>
         </div>
-    {% endif %}
 {% endblock %}

@@ -26,8 +26,8 @@
                 <tbody>
                     {% for stock in stocks %}
                     <tr>
-                        <td>{{ stock.name }}</td>
                         <td>{{ stock.ticker_symbol }}</td>
+                        <td>{{ stock.name }}</td>
                         <td>${{ stock.price }}</td>
                     </tr>
                     {% endfor %}

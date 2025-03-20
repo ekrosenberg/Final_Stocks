@@ -11,6 +11,7 @@ import random, math
 from decimal import Decimal
 from datetime import datetime
 import time
+from decimal import Decimal
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -55,6 +56,7 @@ class Portfolio(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     purchase_price = db.Column(db.Numeric(10,2), nullable=False)
     current_price = db.Column(db.Numeric(10,2), nullable=False)
+    stock = db.relationship("Stocks", backref="portfolios", lazy=True)
 
 # Transactions model creation for database
 
@@ -150,80 +152,103 @@ def user_home():
 @app.route('/user_portfolio')
 @login_required
 def user_portfolio():
-    #The users transactions are retrieved
+    # Retrieve the user's cash balance (defaulting to 0 if none exists)
+    user_balance = Balance.query.filter_by(user_id=current_user.id).first()
+    cash_balance = user_balance.balance if user_balance else Decimal("0.00")
+
+    # Retrieve all portfolio entries (stocks owned) for the user
+    portfolio_entries = Portfolio.query.filter_by(user_id=current_user.id).all()
+    
+    # Calculate the total value of stock holdings
+    stocks_total = Decimal("0.00")
+    for entry in portfolio_entries:
+        stocks_total += entry.quantity * entry.current_price
+
+    # Total portfolio value is the sum of cash balance and stock holdings
+    total_portfolio_value = cash_balance + stocks_total
+
+    # Retrieve transaction history (if needed on this page)
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()
 
-    #The transactions are sent to the template
-    return render_template('user_portfolio.html', user=current_user, transactions=transactions)
+    return render_template(
+        'user_portfolio.html',
+        cash_balance=cash_balance,
+        portfolio_total=total_portfolio_value,
+        portfolio=portfolio_entries,
+        transactions=transactions
+    )
 
 
 @app.route('/user_trades', methods=["GET", "POST"])
 @login_required
 def user_trades():
     if request.method == "POST":
-
         action = request.form.get("action")
-        if action == "buy":
-            stock_symbol = request.form.get("buyStockSymbol", "").strip().upper()
-            quantity = request.form.get("buyQuantity", "").strip()
-        elif action == "sell":
-            stock_symbol = request.form.get("sellStockSymbol", "").strip().upper()
-            quantity = request.form.get("sellQuantity", "").strip()
-        else:
-            stock_symbol = ""
-            quantity = ""
-        
-        if not stock_symbol:
-            flash(f"Stock symbol is required. Received: '{stock_symbol}'", "danger")
-            return redirect(url_for("user_trades"))
 
-        if action == "buy":
-            quantity = request.form.get("buyQuantity", "").strip()
-        elif action == "sell":
-            quantity = request.form.get("sellQuantity", "").strip()
-        else:
-            quantity = ""
+        # For both buy and sell actions, extract stock symbol and quantity
+        if action in ["buy", "sell"]:
+            if action == "buy":
+                stock_symbol = request.form.get("buyStockSymbol", "").strip().upper()
+                quantity_str = request.form.get("buyQuantity", "").strip()
+            else:  # action == "sell"
+                stock_symbol = request.form.get("sellStockSymbol", "").strip().upper()
+                quantity_str = request.form.get("sellQuantity", "").strip()
 
-        if not quantity.isdigit():
-            flash("Invalid quantity. Please enter a valid number.", "danger")
-            return redirect(url_for("user_trades"))
+            if not stock_symbol:
+                flash("Stock symbol is required.", "danger")
+                return redirect(url_for("user_trades"))
 
-        quantity = int(quantity)
-        stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
+            if not quantity_str.isdigit():
+                flash("Invalid quantity. Please enter a valid number.", "danger")
+                return redirect(url_for("user_trades"))
 
-        if not stock:
-            flash("Stock not found. Please enter a valid stock symbol.", "danger")
-            return redirect(url_for("user_trades"))
+            quantity = int(quantity_str)
+            stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
+            if not stock:
+                flash("Stock not found. Please enter a valid stock symbol.", "danger")
+                return redirect(url_for("user_trades"))
 
-        total_price = stock.price * quantity
+            total_price = stock.price * quantity
 
-        if action == "buy":
+            if action == "buy":
+                # Save pending purchase transaction in session
+                session["pending_transaction"] = {
+                    "action": "buy",
+                    "stock_symbol": stock_symbol,
+                    "quantity": quantity,
+                    "total_price": str(total_price)
+                }
+                session.modified = True
+                flash(f"Are you sure you want to buy {quantity} shares of {stock_symbol} for ${total_price:.2f}?", "warning")
+                return redirect(url_for("user_trades"))
+            
+            elif action == "sell":
+                # Ensure the user has enough shares to sell
+                user_stock = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
+                if not user_stock or user_stock.quantity < quantity:
+                    flash("You do not have enough shares to sell.", "danger")
+                    return redirect(url_for("user_trades"))
+                # Save pending sale transaction in session
+                session["pending_transaction"] = {
+                    "action": "sell",
+                    "stock_symbol": stock_symbol,
+                    "quantity": quantity,
+                    "total_price": Decimal(total_price)
+                }
+                session.modified = True
+                flash(f"Are you sure you want to sell {quantity} shares of {stock_symbol} for ${total_price:.2f}?", "warning")
+                return redirect(url_for("user_trades"))
 
-            session["pending_transaction"] = {
-                "action": "buy",
-                "stock_symbol": stock_symbol,
-                "quantity": quantity,
-                "total_price": float(total_price)
-            }
-
-            session.modified = True
-
-            flash(
-                f"Are you sure you want to buy {quantity} shares of {stock_symbol} for ${total_price:.2f}?",
-                "warning"
-            )
-            return redirect(url_for("user_trades"))
-
+        # Confirm Purchase Action
         elif action == "confirm_purchase":
             transaction = session.get("pending_transaction")
-
             if not transaction:
                 flash("Transaction not found. Please try again.", "danger")
                 return redirect(url_for("user_trades"))
 
             stock_symbol = transaction.get("stock_symbol")
             quantity = transaction.get("quantity")
-            total_price = transaction.get("total_price")
+            total_price = Decimal(transaction.get("total_price"))
 
             stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
             if not stock:
@@ -231,57 +256,54 @@ def user_trades():
                 return redirect(url_for("user_trades"))
 
             user_balance = Balance.query.filter_by(user_id=current_user.id).first()
-
-            if user_balance.balance >= total_price:
-                user_balance.balance -= total_price
-
-                new_transaction = Transactions(
-                    user_id=current_user.id,
-                    stock_symbol=stock_symbol,
-                    transaction_type="buy",
-                    quantity=quantity,
-                    price=stock.price,
-                    total_amount=total_price
-                )
-                db.session.add(new_transaction)
-                db.session.commit()
-
-                flash(f"Successfully bought {quantity} shares of {stock_symbol}!", "success")
-            else:
+            if not user_balance or user_balance.balance < total_price:
                 flash("Insufficient funds to complete the purchase.", "danger")
+                session.pop("pending_transaction", None)
+                return redirect(url_for("user_trades"))
 
+            # Deduct funds
+            user_balance.balance -= total_price
+
+            # Create a transaction record
+            new_transaction = Transactions(
+                user_id=current_user.id,
+                stock_symbol=stock_symbol,
+                transaction_type="buy",
+                quantity=quantity,
+                price=stock.price,
+                total_amount=total_price
+            )
+
+            # Update or add portfolio entry
+            user_stock = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
+            if user_stock:
+                user_stock.quantity += quantity
+                user_stock.current_price = stock.price
+            else:
+                new_portfolio_entry = Portfolio(
+                    user_id=current_user.id,
+                    stock_id=stock.id,
+                    quantity=quantity,
+                    purchase_price=stock.price,
+                    current_price=stock.price
+                )
+                db.session.add(new_portfolio_entry)
+
+            db.session.add(new_transaction)
+            db.session.commit()
             session.pop("pending_transaction", None)
+            flash(f"Successfully bought {quantity} shares of {stock_symbol}!", "success")
             return redirect(url_for("user_trades"))
 
+        # Cancel Purchase Action
         elif action == "cancel_purchase":
             session.pop("pending_transaction", None)
             flash("Purchase canceled.", "info")
             return redirect(url_for("user_trades"))
 
-        elif action == "sell":
-            user_stock = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
-
-            if not user_stock or user_stock.quantity < quantity:
-                flash("You do not have enough shares to sell.", "danger")
-                return redirect(url_for("user_trades"))
-
-            #Stores pending sale transactions
-            session["pending_transaction"] = {
-                "action": "sell",
-                "stock_symbol": stock_symbol,
-                "quantity": quantity,
-                "total_price": float(total_price)
-            }
-
-            session.modified = True
-
-            flash(f"Are you sure you want to sell {quantity} shares of {stock_symbol} for ${total_price:.2f}?", "warning")
-            return redirect(url_for("user_trades"))
-
-        #Sell action is confirmed
+        # Confirm Sell Action
         elif action == "confirm_sell":
             transaction = session.get("pending_transaction")
-
             if not transaction:
                 flash("Transaction not found. Please try again.", "danger")
                 return redirect(url_for("user_trades"))
@@ -300,22 +322,19 @@ def user_trades():
                 flash("You do not have enough shares to sell.", "danger")
                 return redirect(url_for("user_trades"))
 
-            #Shares are deducted from the user
+            # Deduct shares from the portfolio
             user_stock.quantity -= quantity
             if user_stock.quantity == 0:
                 db.session.delete(user_stock)
 
-            #Checks user has balance
+            # Add funds from sale to the user's balance
             user_balance = Balance.query.filter_by(user_id=current_user.id).first()
             if not user_balance:
                 user_balance = Balance(user_id=current_user.id, balance=0.00)
                 db.session.add(user_balance)
                 db.session.commit()
-
-            #Sold share money is added to the account
             user_balance.balance += total_price
 
-            #Records the transactions
             new_transaction = Transactions(
                 user_id=current_user.id,
                 stock_symbol=stock_symbol,
@@ -326,17 +345,17 @@ def user_trades():
             )
             db.session.add(new_transaction)
             db.session.commit()
-
             session.pop("pending_transaction", None)
             flash(f"Successfully sold {quantity} shares of {stock_symbol} for ${total_price:.2f}!", "success")
             return redirect(url_for("user_trades"))
 
-        #Sell action is cancelled by user
+        # Cancel Sell Action
         elif action == "cancel_sell":
             session.pop("pending_transaction", None)
             flash("Sell transaction canceled.", "info")
             return redirect(url_for("user_trades"))
 
+    # On GET, load available stocks and render the page.
     stocks = Stocks.query.all()
     return render_template("user_trades.html", stocks=stocks)
 
@@ -345,6 +364,50 @@ def user_trades():
 def user_transactions():
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()
     return render_template('user_transactions.html', transactions=transactions)
+
+@app.route('/user_deposit', methods=["GET", "POST"])
+@login_required
+def user_deposit():
+    if request.method == "POST":
+        action = request.form.get("action")
+        amount_str = request.form.get("amount", "").strip()
+        try:
+            amount = Decimal(amount_str)
+        except ValueError:
+            flash("Invalid amount entered.", "danger")
+            return redirect(url_for("user_deposit"))
+            
+        if amount <= 0:
+            flash("Please enter a positive amount.", "danger")
+            return redirect(url_for("user_deposit"))
+
+        # Get or create the user's balance record
+        user_balance = Balance.query.filter_by(user_id=current_user.id).first()
+        if not user_balance:
+            user_balance = Balance(user_id=current_user.id, balance=0.00)
+            db.session.add(user_balance)
+            db.session.commit()
+
+        if action == "deposit":
+            user_balance.balance += amount
+            flash(f"Successfully deposited ${amount:.2f}.", "success")
+        elif action == "withdraw":
+            if user_balance.balance >= amount:
+                user_balance.balance -= amount
+                flash(f"Successfully withdrew ${amount:.2f}.", "success")
+            else:
+                flash("Insufficient funds to withdraw.", "danger")
+                return redirect(url_for("user_deposit"))
+        db.session.commit()
+        return redirect(url_for("user_deposit"))
+
+    user_balance = Balance.query.filter_by(user_id=current_user.id).first()
+    if not user_balance:
+        user_balance = Balance(user_id=current_user.id, balance=0.00)
+        db.session.add(user_balance)
+        db.session.commit()
+        
+    return render_template("user_deposit.html", balance=user_balance.balance)
 
 #Admin exclusive HTML pages
 

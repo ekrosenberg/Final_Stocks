@@ -23,14 +23,25 @@
           <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
             {{ message }}
             {% if category == "warning" and session.get("pending_transaction") %}
-                <form method="post" class="d-inline">
-                    <input type="hidden" name="action" value="confirm_purchase">
-                    <button type="submit" class="btn btn-success btn-sm">Confirm</button>
-                </form>
-                <form method="post" class="d-inline">
-                    <input type="hidden" name="action" value="cancel_purchase">
-                    <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
-                </form>
+                {% if session["pending_transaction"]["action"] == "buy" %}
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="action" value="confirm_purchase">
+                        <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                    </form>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="action" value="cancel_purchase">
+                        <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                    </form>
+                {% elif session["pending_transaction"]["action"] == "sell" %}
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="action" value="confirm_sell">
+                        <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                    </form>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="action" value="cancel_sell">
+                        <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                    </form>
+                {% endif %}
             {% endif %}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>

@@ -85,7 +85,11 @@ class Balance(db.Model):
 def randomizer():
     stocks = Stocks.query.all()
     for stock in stocks:
-        stock.price += Decimal(random.uniform(-250, 250))
+        price_change = Decimal(random.uniform(-250, 250))
+        new_price = stock.price + price_change
+
+        #Ensures the price never goes negative.
+        stock.price = max(new_price, Decimal("1.00"))
     db.session.commit()
 
 # Creates table for the database
@@ -222,7 +226,7 @@ def user_trades():
                 flash(f"Are you sure you want to buy {quantity} shares of {stock_symbol} for ${total_price:.2f}?", "warning")
                 return redirect(url_for("user_trades"))
             
-            elif action == "sell":
+            if action == "sell":
                 # Ensure the user has enough shares to sell
                 user_stock = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
                 if not user_stock or user_stock.quantity < quantity:
@@ -233,7 +237,7 @@ def user_trades():
                     "action": "sell",
                     "stock_symbol": stock_symbol,
                     "quantity": quantity,
-                    "total_price": Decimal(total_price)
+                    "total_price": str(total_price)
                 }
                 session.modified = True
                 flash(f"Are you sure you want to sell {quantity} shares of {stock_symbol} for ${total_price:.2f}?", "warning")
@@ -310,7 +314,7 @@ def user_trades():
 
             stock_symbol = transaction.get("stock_symbol")
             quantity = transaction.get("quantity")
-            total_price = transaction.get("total_price")
+            total_price = Decimal(transaction.get("total_price"))
 
             stock = Stocks.query.filter_by(ticker_symbol=stock_symbol).first()
             if not stock:

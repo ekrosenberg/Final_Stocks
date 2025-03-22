@@ -373,9 +373,12 @@ def user_trades():
             flash("Sell transaction canceled.", "info")
             return redirect(url_for("user_trades"))
 
-    # On GET, load available stocks and render the page.
+    # On GET, load available stocks and the users balance, then render the page.
     stocks = Stocks.query.all()
-    return render_template("user_trades.html", stocks=stocks)
+    user_balance = Balance.query.filter_by(user_id=current_user.id).first()
+    cash_balance = user_balance.balance if user_balance else Decimal("0.00")
+
+    return render_template("user_trades.html", stocks=stocks, balance=cash_balance)
 
 @app.route('/user_transactions')
 @login_required

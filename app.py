@@ -87,7 +87,7 @@ def randomizer():
     with app.app_context():
         stocks = Stocks.query.all()
         for stock in stocks:
-            price_change = Decimal(random.uniform(-250, 250))
+            price_change = Decimal(random.uniform(-50, 50))
             stock.price = max(stock.price + price_change, Decimal("1.00"))
 
         db.session.commit()

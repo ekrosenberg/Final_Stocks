@@ -5,14 +5,23 @@
   <h1>Manage Cash</h1>
   <p>Your current cash balance: ${{ balance }}</p>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-          {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
-      {% endif %}
-  {% endwith %}
-
+  {% if session.pending_cash_transaction %}
+  <div class="alert alert-warning">
+    {% if session.pending_cash_transaction.action == 'deposit' %}
+      <p>Are you sure you want to deposit ${{ session.pending_cash_transaction.amount }}?</p>
+      <form method="POST" action="{{ url_for('user_deposit') }}">
+         <button type="submit" name="action" value="confirm_deposit" class="btn btn-success">Confirm</button>
+         <button type="submit" name="action" value="cancel_deposit" class="btn btn-secondary">Cancel</button>
+      </form>
+    {% elif session.pending_cash_transaction.action == 'withdraw' %}
+      <p>Are you sure you want to withdraw ${{ session.pending_cash_transaction.amount }}?</p>
+      <form method="POST" action="{{ url_for('user_deposit') }}">
+         <button type="submit" name="action" value="confirm_withdraw" class="btn btn-success">Confirm</button>
+         <button type="submit" name="action" value="cancel_withdraw" class="btn btn-secondary">Cancel</button>
+      </form>
+    {% endif %}
+  </div>
+{% endif %}
   <style>
     .btn-primary {
             background-color: maroon !important;

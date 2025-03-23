@@ -81,7 +81,7 @@ class Balance(db.Model):
 
     user = db.relationship('Users', backref=db.backref('balance', uselist=False))
 
-#Price Random Generator / Auto-Triggers on Startup ($-250 --> $250 price)
+#Price Random Generator / Auto-Triggers on Startup ($-50 --> $50 price)
 
 def randomizer():
     with app.app_context():
@@ -391,6 +391,53 @@ def user_transactions():
 def user_deposit():
     if request.method == "POST":
         action = request.form.get("action")
+        
+        # Confirm or cancel pending deposit/withdrawal actions
+        if action == "confirm_deposit":
+            pending = session.get("pending_cash_transaction")
+            if not pending or pending.get("action") != "deposit":
+                flash("No pending deposit transaction.", "danger")
+                return redirect(url_for("user_deposit"))
+            amount = Decimal(pending.get("amount"))
+            user_balance = Balance.query.filter_by(user_id=current_user.id).first()
+            if not user_balance:
+                user_balance = Balance(user_id=current_user.id, balance=0.00)
+                db.session.add(user_balance)
+                db.session.commit()
+            user_balance.balance += amount
+            db.session.commit()
+            session.pop("pending_cash_transaction", None)
+            flash(f"Successfully deposited ${amount:.2f}.", "success")
+            return redirect(url_for("user_deposit"))
+        
+        elif action == "cancel_deposit":
+            session.pop("pending_cash_transaction", None)
+            flash("Deposit canceled.", "info")
+            return redirect(url_for("user_deposit"))
+        
+        elif action == "confirm_withdraw":
+            pending = session.get("pending_cash_transaction")
+            if not pending or pending.get("action") != "withdraw":
+                flash("No pending withdrawal transaction.", "danger")
+                return redirect(url_for("user_deposit"))
+            amount = Decimal(pending.get("amount"))
+            user_balance = Balance.query.filter_by(user_id=current_user.id).first()
+            if not user_balance or user_balance.balance < amount:
+                flash("Insufficient funds to complete withdrawal.", "danger")
+                session.pop("pending_cash_transaction", None)
+                return redirect(url_for("user_deposit"))
+            user_balance.balance -= amount
+            db.session.commit()
+            session.pop("pending_cash_transaction", None)
+            flash(f"Successfully withdrew ${amount:.2f}.", "success")
+            return redirect(url_for("user_deposit"))
+        
+        elif action == "cancel_withdraw":
+            session.pop("pending_cash_transaction", None)
+            flash("Withdrawal canceled.", "info")
+            return redirect(url_for("user_deposit"))
+        
+        # Confirm deposit or withdrawal
         amount_str = request.form.get("amount", "").strip()
         try:
             amount = Decimal(amount_str)
@@ -401,27 +448,29 @@ def user_deposit():
         if amount <= 0:
             flash("Please enter a positive amount.", "danger")
             return redirect(url_for("user_deposit"))
-
-        # Get or create the user's balance record
-        user_balance = Balance.query.filter_by(user_id=current_user.id).first()
-        if not user_balance:
-            user_balance = Balance(user_id=current_user.id, balance=0.00)
-            db.session.add(user_balance)
-            db.session.commit()
-
+        
         if action == "deposit":
-            user_balance.balance += amount
-            flash(f"Successfully deposited ${amount:.2f}.", "success")
+            session["pending_cash_transaction"] = {
+                "action": "deposit",
+                "amount": str(amount)
+            }
+            session.modified = True
+            flash(f"Are you sure you want to deposit ${amount:.2f}?", "warning")
+            return redirect(url_for("user_deposit"))
+        
         elif action == "withdraw":
-            if user_balance.balance >= amount:
-                user_balance.balance -= amount
-                flash(f"Successfully withdrew ${amount:.2f}.", "success")
-            else:
+            user_balance = Balance.query.filter_by(user_id=current_user.id).first()
+            if not user_balance or user_balance.balance < amount:
                 flash("Insufficient funds to withdraw.", "danger")
                 return redirect(url_for("user_deposit"))
-        db.session.commit()
-        return redirect(url_for("user_deposit"))
-
+            session["pending_cash_transaction"] = {
+                "action": "withdraw",
+                "amount": str(amount)
+            }
+            session.modified = True
+            flash(f"Are you sure you want to withdraw ${amount:.2f}?", "warning")
+            return redirect(url_for("user_deposit"))
+    
     user_balance = Balance.query.filter_by(user_id=current_user.id).first()
     if not user_balance:
         user_balance = Balance(user_id=current_user.id, balance=0.00)

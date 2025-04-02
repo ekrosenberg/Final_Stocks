@@ -290,6 +290,9 @@ def user_trades():
             # Deduct funds
             user_balance.balance -= total_price
 
+            #Deduct stock quantity
+            stock.quantity -= quantity
+
             # Create a transaction record
             new_transaction = Transactions(
                 user_id=current_user.id,
@@ -359,7 +362,12 @@ def user_trades():
                 user_balance = Balance(user_id=current_user.id, balance=0.00)
                 db.session.add(user_balance)
                 db.session.commit()
+
+            #Adds money to the users account
             user_balance.balance += total_price
+
+            #Adds sold quantity back to the stock quantity
+            stock.quantity += quantity
 
             new_transaction = Transactions(
                 user_id=current_user.id,

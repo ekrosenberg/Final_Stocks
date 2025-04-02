@@ -46,6 +46,7 @@ class Stocks(db.Model):
     price = db.Column(db.Numeric(10,2), nullable=False)
     day_high = db.Column(db.Numeric(10,2), nullable=False)
     day_low = db.Column(db.Numeric(10,2), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1000)
     
 # Portfolio model creation for database
 
@@ -71,6 +72,7 @@ class Transactions(db.Model):
     price = db.Column(db.Numeric(10,2), nullable=False)
     total_amount = db.Column(db.Numeric(10,2), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('Users', backref='transactions', lazy=True)
 
 #Creates a model for the balance
 class Balance(db.Model):
@@ -490,8 +492,18 @@ def user_deposit():
 @app.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
-    #Add a conditional block that checks if admin role here to prevent security bug
-    return render_template('admin_dashboard.html')
+    #checks if the current user has the admin role, if not redirects the user back to login
+    if current_user.role != "admin":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+
+    #Retrieves the needed data
+    users = Users.query.all()
+    stocks = Stocks.query.all()
+    transactions = Transactions.query.all()
+
+    #Passes the data to the HTML file
+    return render_template('admin_dashboard.html', users=users, stocks=stocks, transactions=transactions)
 
 @app.route('/admin_stock_management')
 @login_required

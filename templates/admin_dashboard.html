@@ -20,16 +20,22 @@
             <thead>
                 <tr>
                     <th>Stock Name</th>
+                    <th>Symbol</th>
+                    <th>Quantity</th>
                     <th>Price</th>
-                    <th>Change</th>
+                    <th>Day High</th>
+                    <th>Day Low</th>
                 </tr>
             </thead>
             <tbody>
                 {% for stock in stocks %}
                 <tr>
                     <td>{{ stock.name }}</td>
+                    <td>{{ stock.ticker_symbol }}</td>
+                    <td>{{ stock.quantity }}</td>
                     <td>{{ stock.price }}</td>
-                    <td>{{ stock.change }}</td>
+                    <td>{{ stock.day_high }}</td>
+                    <td>{{ stock.day_low }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -44,15 +50,21 @@
                 <tr>
                     <th>User</th>
                     <th>Action</th>
+                    <th>Stock</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
                     <th>Timestamp</th>
                 </tr>
             </thead>
             <tbody>
-                {% for log in logs %}
+                {% for transaction in transactions %}
                 <tr>
-                    <td>{{ log.user }}</td>
-                    <td>{{ log.action }}</td>
-                    <td>{{ log.timestamp }}</td>
+                    <td>{{ transaction.user.username }}</td>
+                    <td>{{ transaction.transaction_type }}</td>
+                    <td>{{ transaction.stock_symbol }}</td>
+                    <td>{{ transaction.quantity }}</td>
+                    <td>{{ transaction.total_amount }}</td>
+                    <td>{{ transaction.date }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

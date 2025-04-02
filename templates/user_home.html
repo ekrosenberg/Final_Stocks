@@ -13,6 +13,8 @@
                         <th>Stock Symbol</th>
                         <th>Company Name</th>
                         <th>Current Price</th>
+                        <th>Day High</th>
+                        <th>Day Low</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -21,6 +23,8 @@
                         <td>{{ stock.ticker_symbol }}</td>
                         <td>{{ stock.name }}</td>
                         <td>${{ stock.price }}</td>
+                        <td>${{ stock.day_high }}</td>
+                        <td>${{ stock.day_low }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

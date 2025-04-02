@@ -81,36 +81,43 @@ class Balance(db.Model):
 
     user = db.relationship('Users', backref=db.backref('balance', uselist=False))
 
-#Price Random Generator / Auto-Triggers on Startup ($-50 --> $50 price)
+#Price Random Generator / Auto-Triggers every 10s ($-0.09 --> $0.09 price)
+#Stock Day High & Day Low Functions also included in Randomizer
 
 def randomizer():
     with app.app_context():
         stocks = Stocks.query.all()
-        for stock in stocks:
-            price_change = Decimal(random.uniform(-50, 50))
-            stock.price = max(stock.price + price_change, Decimal("1.00"))
+        transactions = Transactions.query.all()
+        portfolios = Portfolio.query.all()
 
-        db.session.commit()
-
-#Price Random Generator / Auto-Triggers every 10s ($-0.09 --> $0.09 price)
-
-def randomizer2():
-    with app.app_context():
-        stocks = Stocks.query.all()
         for stock in stocks:
             price_change = Decimal(random.uniform(-0.09, 0.09))
             stock.price = max(stock.price + price_change, Decimal("1.00"))
 
+            if stock.day_high is None or stock.price > stock.day_high:
+                stock.day_high = stock.price
+            if stock.day_low is None or stock.price < stock.day_low:
+                stock.day_low = stock.price
+
+        for transaction in transactions:
+            for stock in stocks:
+                if stock.ticker_symbol == transaction.stock_symbol:
+                    transaction.price = stock.price
+
+        for portfolio in portfolios:
+            for stock in stocks:
+                if stock.id == portfolio.stock_id:
+                    portfolio.current_price = stock.price
+
         db.session.commit()
 
-    threading.Timer(10, randomizer2).start()
+    threading.Timer(10, randomizer).start()
 
 # Creates table for the database
 
 with app.app_context():
     db.create_all()
     randomizer()
-    randomizer2()  
 
 # User loader to retrieve id numbers
 
@@ -164,7 +171,6 @@ def logout():
 @app.route('/user_home', methods=["GET", "POST"])
 def user_home():
     stocks = Stocks.query.all()
-    flash("The stock market has been updated!", "info")
     return render_template('user_home.html', stocks=stocks)
 
 @app.route('/user_portfolio')
@@ -497,5 +503,4 @@ def admin_stock_management():
 
 if __name__ == '__main__':
     randomizer()
-    randomizer2()
     app.run(debug=True)

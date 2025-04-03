@@ -9,7 +9,7 @@ from flask import redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import random, math
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, time as dtime
 import time
 from decimal import Decimal
 import threading
@@ -47,6 +47,9 @@ class Stocks(db.Model):
     day_high = db.Column(db.Numeric(10,2), nullable=False)
     day_low = db.Column(db.Numeric(10,2), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1000)
+    volume = db.Column(db.Integer, default=0)
+    market_cap = db.Column(db.Numeric(15,2), default=0.00)
+    opening_price = db.Column(db.Numeric(10,2), default=0.00)
     
 # Portfolio model creation for database
 
@@ -82,6 +85,23 @@ class Balance(db.Model):
     balance = db.Column(db.Numeric(10,2), nullable=False, default=0.00)
 
     user = db.relationship('Users', backref=db.backref('balance', uselist=False))
+
+# Market hours settings 
+class MarketHours(db.Model):
+    __tablename__ = 'market_hours'
+    id = db.Column(db.Integer, primary_key=True)
+    market_open = db.Column(db.String(5), default="09:30")
+    market_close = db.Column(db.String(5), default="16:00")
+
+    market_open_time = db.Column(db.Time, default=dtime(9, 30))
+    market_close_time = db.Column(db.Time, default=dtime(16, 0))
+
+# Market holidays settings
+class MarketHoliday(db.Model):
+    __tablename__ = 'market_holidays'
+    id = db.Column(db.Integer, primary_key=True)
+    holiday_date = db.Column(db.Date, unique=True, nullable=False)
+    description = db.Column(db.String(255))
 
 #Price Random Generator / Auto-Triggers every 10s ($-0.09 --> $0.09 price)
 #Stock Day High & Day Low Functions also included in Randomizer
@@ -126,6 +146,28 @@ with app.app_context():
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(int(user_id))
+
+# Helper Function for Market Hours
+def is_market_open():
+    now = datetime.now()
+    weekday = now.weekday()
+    
+    # Market is closed on weekends
+    if weekday >= 5:
+        return False
+
+    # Check if today is a holiday
+    holiday = MarketHoliday.query.filter_by(holiday_date=now.date()).first()
+    if holiday:
+        return False
+
+    # Use market hours from the session or default to 9:30 AM - 4:00 PM
+    open_time = session.get("market_open", "09:00")
+    close_time = session.get("market_close", "16:00")
+    open_dt = datetime.strptime(open_time, "%H:%M").time()
+    close_dt = datetime.strptime(close_time, "%H:%M").time()
+    
+    return open_dt <= now.time() <= close_dt
 
 #Shared default, login, sign-up, and logout HTML pages between users and admins
 
@@ -213,6 +255,9 @@ def user_trades():
 
         # For both buy and sell actions, extract stock symbol and quantity
         if action in ["buy", "sell"]:
+            if not is_market_open():
+                flash("Market is currently closed. Trading is allowed only during market hours.", "warning")
+                return redirect(url_for("user_trades"))
             if action == "buy":
                 stock_symbol = request.form.get("buyStockSymbol", "").strip().upper()
                 quantity_str = request.form.get("buyQuantity", "").strip()
@@ -513,11 +558,228 @@ def admin_dashboard():
     #Passes the data to the HTML file
     return render_template('admin_dashboard.html', users=users, stocks=stocks, transactions=transactions)
 
-@app.route('/admin_stock_management')
+@app.route('/admin_stock_management', methods=["GET", "POST"])
 @login_required
 def admin_stock_management():
-    #Add a conditional block that checks if admin role here to prevent security bug
-    return render_template('admin_stock_management.html')
+    if current_user.role != "admin":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+    
+    if request.method == "POST":
+        form_type = request.form.get("form_type")
+        action = request.form.get("action")
+        
+        # Create stock
+        if form_type == "create_stock":
+            if action == "save_stock":
+                session["pending_stock"] = {
+                    "company_name": request.form.get("company_name"),
+                    "ticker": request.form.get("ticker").upper(),
+                    "volume": request.form.get("volume"),
+                    "price": request.form.get("price")
+                }
+                flash(f"Are you sure you want to create stock {session['pending_stock']['ticker']} for {session['pending_stock']['company_name']}?", "warning")
+                return redirect(url_for("admin_stock_management"))
+            elif action == "confirm_stock":
+                pending = session.pop("pending_stock", None)
+                if pending:
+                    if Stocks.query.filter((Stocks.name == pending["company_name"]) | (Stocks.ticker_symbol == pending["ticker"])).first():
+                        flash("Stock already exists with this name or ticker.", "danger")
+                    else:
+                        new_stock = Stocks(
+                            name=pending["company_name"],
+                            ticker_symbol=pending["ticker"],
+                            price=Decimal(pending["price"]),
+                            day_high=Decimal(pending["price"]),
+                            day_low=Decimal(pending["price"]),
+                            quantity=int(pending["volume"])
+                        )
+                        db.session.add(new_stock)
+                        db.session.commit()
+                        flash(f"Stock {pending['ticker']} created successfully!", "success")
+                else:
+                    flash("No pending stock creation found.", "danger")
+                return redirect(url_for("admin_stock_management"))
+            elif action == "cancel_stock":
+                session.pop("pending_stock", None)
+                flash("Stock creation canceled.", "info")
+                return redirect(url_for("admin_stock_management"))
+        
+        # delete Stock
+        elif form_type == "delete_stock":
+            if action == "save_delete":
+                session["pending_delete"] = {
+                    "ticker": request.form.get("ticker").upper()
+                }
+                flash(f"Are you sure you want to delete stock {session['pending_delete']['ticker']}?", "warning")
+                return redirect(url_for("admin_stock_management"))
+            elif action == "confirm_delete":
+                pending = session.pop("pending_delete", None)
+                if pending:
+                    stock = Stocks.query.filter_by(ticker_symbol=pending["ticker"]).first()
+                    if stock:
+                        db.session.delete(stock)
+                        db.session.commit()
+                        flash(f"Stock {stock.ticker_symbol} deleted successfully!", "success")
+                    else:
+                        flash("Stock not found.", "danger")
+                else:
+                    flash("No pending stock deletion found.", "danger")
+                return redirect(url_for("admin_stock_management"))
+            elif action == "cancel_delete":
+                session.pop("pending_delete", None)
+                flash("Stock deletion canceled.", "info")
+                return redirect(url_for("admin_stock_management"))
+        
+        # Update Stock Price
+        elif form_type == "update_stock":
+            if action == "save_update":
+                session["pending_update"] = {
+                    "ticker": request.form.get("ticker").upper(),
+                    "new_price": request.form.get("new_price")
+                }
+                flash(f"Are you sure you want to update stock {session['pending_update']['ticker']} to price {session['pending_update']['new_price']}?", "warning")
+                return redirect(url_for("admin_stock_management"))
+            elif action == "confirm_update":
+                pending = session.pop("pending_update", None)
+                if pending:
+                    stock = Stocks.query.filter_by(ticker_symbol=pending["ticker"]).first()
+                    if stock:
+                        stock.price = Decimal(pending["new_price"])
+                        db.session.commit()
+                        flash(f"Price for {stock.ticker_symbol} updated successfully!", "success")
+                    else:
+                        flash("Stock not found.", "danger")
+                else:
+                    flash("No pending update found.", "danger")
+                return redirect(url_for("admin_stock_management"))
+            elif action == "cancel_update":
+                session.pop("pending_update", None)
+                flash("Stock update canceled.", "info")
+                return redirect(url_for("admin_stock_management"))
+    
+    return render_template("admin_stock_management.html")
+
+@app.route('/admin_market_management', methods=["GET", "POST"])
+@login_required
+def admin_market_management():
+    if current_user.role != "admin":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+
+    show_confirmation = False
+    pending_open = session.get("pending_open_time")
+    pending_close = session.get("pending_close_time")
+
+    if request.method == "POST":
+        form_type = request.form.get("form_type")
+        action = request.form.get("action")
+
+        # Market Hours Change
+        if form_type == "hours":
+            if action == "save_hours":
+                open_time = request.form.get("open_time")
+                close_time = request.form.get("close_time")
+                if not open_time or not close_time:
+                    flash("Both open and close times are required.", "danger")
+                else:
+                    session["pending_open_time"] = open_time
+                    session["pending_close_time"] = close_time
+                    flash(f"Are you sure you want to set market hours to {open_time} - {close_time}?", "warning")
+                    show_confirmation = True
+
+            elif action == "confirm":
+                open_time = session.pop("pending_open_time", None)
+                close_time = session.pop("pending_close_time", None)
+                if open_time and close_time:
+                    open_dt = datetime.strptime(open_time, "%H:%M").time()
+                    close_dt = datetime.strptime(close_time, "%H:%M").time()
+                    market_hours = MarketHours.query.first()
+                    if not market_hours:
+                        market_hours = MarketHours()
+                        db.session.add(market_hours)
+                    market_hours.market_open = open_time
+                    market_hours.market_close = close_time
+                    market_hours.market_open_time = open_dt
+                    market_hours.market_close_time = close_dt
+                    db.session.commit()
+                    session["market_open"] = open_time
+                    session["market_close"] = close_time
+                    flash("Market hours updated successfully!", "success")
+                else:
+                    flash("No pending update found.", "danger")
+            elif action == "cancel":
+                session.pop("pending_open_time", None)
+                session.pop("pending_close_time", None)
+                flash("Market hour update canceled.", "info")
+        
+        # Add a Holiday 
+        elif form_type == "add_holiday":
+            if action == "save_holiday":
+                # Get the holiday date as a string directly from the form
+                holiday_date_str = request.form.get("holiday_date")
+                description = request.form.get("description")
+                # You can perform a quick check on the string format if needed.
+                try:
+                    # Validate the format; this will raise an exception if the format is incorrect.
+                    datetime.strptime(holiday_date_str, "%Y-%m-%d")
+                    # Store the date string in session (as is)
+                    session["pending_holiday_date"] = holiday_date_str
+                    session["pending_holiday_description"] = description
+                    flash(f"Are you sure you want to add a holiday on {holiday_date_str}?", "warning")
+                except Exception as e:
+                    flash("Invalid date format. Please use YYYY-MM-DD.", "danger")
+                return redirect(url_for("admin_market_management"))
+            elif action == "confirm_add_holiday":
+                pending_date_str = session.pop("pending_holiday_date", None)
+                pending_desc = session.pop("pending_holiday_description", "")
+                if pending_date_str:
+                    try:
+                        # Convert the string to a date object
+                        pending_date = datetime.strptime(pending_date_str, "%Y-%m-%d").date()
+                        if MarketHoliday.query.filter_by(holiday_date=pending_date).first():
+                            flash("A holiday for that date already exists.", "danger")
+                        else:
+                            new_holiday = MarketHoliday(holiday_date=pending_date, description=pending_desc)
+                            db.session.add(new_holiday)
+                            db.session.commit()
+                            flash("Holiday added successfully.", "success")
+                    except Exception as e:
+                        flash("Error adding holiday.", "danger")
+                else:
+                    flash("No pending holiday to add.", "danger")
+                return redirect(url_for("admin_market_management"))
+            elif action == "cancel_add_holiday":
+                session.pop("pending_holiday_date", None)
+                session.pop("pending_holiday_description", None)
+                flash("Holiday addition canceled.", "info")
+                return redirect(url_for("admin_market_management"))
+                
+        # Delete a Holiday 
+        elif form_type == "delete_holiday":
+            holiday_id = request.form.get("holiday_id")
+            holiday = MarketHoliday.query.get(holiday_id)
+            if holiday:
+                db.session.delete(holiday)
+                db.session.commit()
+                flash("Holiday deleted successfully.", "success")
+            else:
+                flash("Holiday not found.", "danger")
+        
+        return redirect(url_for("admin_market_management"))
+
+    market_hours = MarketHours.query.first()
+    open_time = market_hours.market_open if market_hours else ""
+    close_time = market_hours.market_close if market_hours else ""
+    holidays = MarketHoliday.query.order_by(MarketHoliday.holiday_date.asc()).all()
+    
+    return render_template("admin_market_management.html", 
+                           open_time=open_time, 
+                           close_time=close_time,
+                           show_confirmation=show_confirmation,
+                           pending_open=pending_open,
+                           pending_close=pending_close,
+                           holidays=holidays)
 
 #Ending block
 

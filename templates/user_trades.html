@@ -103,6 +103,8 @@
                         <th>Current Price</th>
                         <th>Day High</th>
                         <th>Day Low</th>
+                        <th>Opening Price</th>
+                        <th>Market Cap</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,6 +116,8 @@
                         <td>${{ stock.price }}</td>
                         <td>${{ stock.day_high }}</td>
                         <td>${{ stock.day_low }}</td>
+                        <td>${{ stock.opening_price }}</td>
+                        <td>${{ stock.market_cap }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

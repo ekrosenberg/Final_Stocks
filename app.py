@@ -49,7 +49,7 @@ class Stocks(db.Model):
     quantity = db.Column(db.Integer, nullable=False, default=0)
     market_cap = db.Column(db.Numeric(15,2), default=0.00)
     opening_price = db.Column(db.Numeric(10,2), default=0.00)
-    
+     
 # Portfolio model creation for database
 
 class Portfolio(db.Model):
@@ -82,7 +82,6 @@ class Balance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
     balance = db.Column(db.Numeric(10,2), nullable=False, default=0.00)
-
     user = db.relationship('Users', backref=db.backref('balance', uselist=False))
 
 # Market hours settings 
@@ -91,7 +90,6 @@ class MarketHours(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     market_open = db.Column(db.String(5), default="09:30")
     market_close = db.Column(db.String(5), default="16:00")
-
     market_open_time = db.Column(db.Time, default=dtime(9, 30))
     market_close_time = db.Column(db.Time, default=dtime(16, 0))
 
@@ -101,9 +99,9 @@ class MarketHoliday(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     holiday_date = db.Column(db.Date, unique=True, nullable=False)
     description = db.Column(db.String(255))
-
+    
 #Price Random Generator / Auto-Triggers every 10s ($-0.09 --> $0.09 price)
-#Stock Day High & Day Low Functions also included in Randomizer
+#Stock Day High/Low, Market Cap, and Opening Price Functions also included in Randomizer
 
 def randomizer():
     with app.app_context():
@@ -114,6 +112,11 @@ def randomizer():
         for stock in stocks:
             price_change = Decimal(random.uniform(-0.09, 0.09))
             stock.price = max(stock.price + price_change, Decimal("1.00"))
+
+            if stock.opening_price is None or stock.opening_price == Decimal("0.00"):
+                stock.opening_price = stock.price
+
+            stock.market_cap = stock.quantity * stock.price
 
             if stock.day_high is None or stock.price > stock.day_high:
                 stock.day_high = stock.price

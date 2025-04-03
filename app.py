@@ -47,7 +47,6 @@ class Stocks(db.Model):
     day_high = db.Column(db.Numeric(10,2), nullable=False)
     day_low = db.Column(db.Numeric(10,2), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=0)
-    #volume = db.Column(db.Integer, default=0)
     market_cap = db.Column(db.Numeric(15,2), default=0.00)
     opening_price = db.Column(db.Numeric(10,2), default=0.00)
     

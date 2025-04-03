@@ -46,8 +46,8 @@ class Stocks(db.Model):
     price = db.Column(db.Numeric(10,2), nullable=False)
     day_high = db.Column(db.Numeric(10,2), nullable=False)
     day_low = db.Column(db.Numeric(10,2), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False, default=1000)
-    volume = db.Column(db.Integer, default=0)
+    quantity = db.Column(db.Integer, nullable=False, default=0)
+    #volume = db.Column(db.Integer, default=0)
     market_cap = db.Column(db.Numeric(15,2), default=0.00)
     opening_price = db.Column(db.Numeric(10,2), default=0.00)
     
@@ -575,7 +575,7 @@ def admin_stock_management():
                 session["pending_stock"] = {
                     "company_name": request.form.get("company_name"),
                     "ticker": request.form.get("ticker").upper(),
-                    "volume": request.form.get("volume"),
+                    "quantity": request.form.get("quantity"),
                     "price": request.form.get("price")
                 }
                 flash(f"Are you sure you want to create stock {session['pending_stock']['ticker']} for {session['pending_stock']['company_name']}?", "warning")
@@ -592,7 +592,7 @@ def admin_stock_management():
                             price=Decimal(pending["price"]),
                             day_high=Decimal(pending["price"]),
                             day_low=Decimal(pending["price"]),
-                            quantity=int(pending["volume"])
+                            quantity=int(pending["quantity"])
                         )
                         db.session.add(new_stock)
                         db.session.commit()

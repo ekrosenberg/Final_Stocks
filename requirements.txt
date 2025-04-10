@@ -4,4 +4,3 @@ Flask-SQLAlchemy==2.5.1
 Flask-Login==0.6.2
 Werkzeug==2.1.2
 pymysql==1.0.2
-decimal==1.0.0

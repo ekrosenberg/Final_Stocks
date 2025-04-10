@@ -1,7 +1,7 @@
 # Python Imports
 
 from flask import Flask, render_template, session
-from flask_bootstrap import Bootstrap
+from flask-bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask import request

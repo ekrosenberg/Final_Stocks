@@ -234,7 +234,7 @@ def user_portfolio():
     # Calculate the total value of stock holdings
     stocks_total = Decimal("0.00")
     for entry in portfolio_entries:
-        stocks_total += entry.quantity * entry.current_price
+        stocks_total += entry.quantity * Decimal(entry.current_price)
 
     # Total portfolio value is the sum of cash balance and stock holdings
     total_portfolio_value = cash_balance + stocks_total

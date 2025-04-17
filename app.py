@@ -111,7 +111,7 @@ def randomizer():
 
         for stock in stocks:
             price_change = Decimal(random.uniform(-0.09, 0.09))
-            stock.price = max(stock.price + price_change, Decimal("1.00"))
+            stock.price = max(Decimal(stock.price) + price_change, Decimal("1.00"))
 
             if stock.opening_price is None or stock.opening_price == Decimal("0.00"):
                 stock.opening_price = stock.price

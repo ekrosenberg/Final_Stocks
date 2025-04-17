@@ -226,7 +226,7 @@ def user_home():
 def user_portfolio():
     # Retrieve the user's cash balance (defaulting to 0 if none exists)
     user_balance = Balance.query.filter_by(user_id=current_user.id).first()
-    cash_balance = user_balance.balance if user_balance else Decimal("0.00")
+    cash_balance = Decimal(user_balance.balance) if user_balance else Decimal("0.00")
 
     # Retrieve all portfolio entries (stocks owned) for the user
     portfolio_entries = Portfolio.query.filter_by(user_id=current_user.id).all()
@@ -337,7 +337,7 @@ def user_trades():
                 return redirect(url_for("user_trades"))
 
             # Deduct funds
-            user_balance.balance -= total_price
+            user_balance.balance = Decimal(user_balance.balance) - Decimal(total_price)
 
             #Deduct stock quantity
             stock.quantity -= quantity
@@ -413,7 +413,7 @@ def user_trades():
                 db.session.commit()
 
             #Adds money to the users account
-            user_balance.balance += total_price
+            user_balance.balance = Decimal(user_balance.balance) + Decimal(total_price)
 
             #Adds sold quantity back to the stock quantity
             stock.quantity += quantity
@@ -469,7 +469,7 @@ def user_deposit():
                 user_balance = Balance(user_id=current_user.id, balance=0.00)
                 db.session.add(user_balance)
                 db.session.commit()
-            user_balance.balance += amount
+            user_balance.balance = Decimal(user_balance.balance) + Decimal(amount)
             db.session.commit()
             session.pop("pending_cash_transaction", None)
             flash(f"Successfully deposited ${amount:.2f}.", "success")
@@ -491,7 +491,7 @@ def user_deposit():
                 flash("Insufficient funds to complete withdrawal.", "danger")
                 session.pop("pending_cash_transaction", None)
                 return redirect(url_for("user_deposit"))
-            user_balance.balance -= amount
+            user_balance.balance = Decimal(user_balance.balance) - Decimal(amount)
             db.session.commit()
             session.pop("pending_cash_transaction", None)
             flash(f"Successfully withdrew ${amount:.2f}.", "success")

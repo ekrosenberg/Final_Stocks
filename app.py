@@ -19,6 +19,8 @@ bootstrap = Bootstrap5(app)
 
 # Database Config
 app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SESSION_COOKIE_SAMESITE'] = "Lax"
+app.config['SESSION_COOKIE_SECURE'] = False
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:ZINaRQfPPDqHAA0OP62M@my-rds-instance.cubaeu46y77l.us-east-1.rds.amazonaws.com:3306/flask_project' # Edit SQL login for local machine
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

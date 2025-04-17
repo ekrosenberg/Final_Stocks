@@ -61,7 +61,13 @@
               <tr>
                 <td>{{ transaction.id }}</td>
                 <td>{{ transaction.transaction_type }}</td>
-                <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                  {% if transaction.date.__class__.__name__ == 'datetime' %}
+                    {{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}
+                  {% else %}
+                    {{ transaction.date }}
+                  {% endif %}
+                </td>
                 <td>{{ transaction.stock_symbol }}</td>
                 <td>${{ "%.2f"|format(transaction.total_amount) }}</td>
                 <td>{{ transaction.quantity }}</td>

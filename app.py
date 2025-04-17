@@ -242,6 +242,16 @@ def user_portfolio():
     # Retrieve transaction history (if needed on this page)
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()
 
+    for t in transactions:
+    if isinstance(t.date, str):
+        try:
+            t.date = datetime.strptime(t.date, '%Y-%m-%d %H:%M:%S.%f')
+        except ValueError:
+            try:
+                t.date = datetime.strptime(t.date, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                pass  # If it's not parsable, leave it as-is
+
     return render_template(
         'user_portfolio.html',
         cash_balance=cash_balance,

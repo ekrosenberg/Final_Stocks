@@ -112,13 +112,13 @@ def randomizer():
         portfolios = Portfolio.query.all()
 
         for stock in stocks:
-            price_change = Decimal(random.uniform(-0.09, 0.09))
-            stock.price = max(Decimal(stock.price) + price_change, Decimal("1.00"))
+            price_change = Decimal(random.uniform(-0.09, 0.09)).quantize(Decimal('0.01'))
+            stock.price = max((Decimal(stock.price) + price_change).quantize(Decimal('0.01')), Decimal("1.00"))
 
             if stock.opening_price is None or stock.opening_price == Decimal("0.00"):
                 stock.opening_price = stock.price
 
-            stock.market_cap = stock.quantity * stock.price
+            stock.market_cap = (stock.quantity * stock.price).quantize(Decimal('0.01'))
 
             if stock.day_high is None or stock.price > stock.day_high:
                 stock.day_high = stock.price
@@ -133,7 +133,7 @@ def randomizer():
         for portfolio in portfolios:
             for stock in stocks:
                 if stock.id == portfolio.stock_id:
-                    portfolio.current_price = stock.price
+                    portfolio.current_price = stock.price.quantize(Decimal('0.01'))
 
         db.session.commit()
 

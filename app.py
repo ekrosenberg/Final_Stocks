@@ -226,7 +226,7 @@ def user_home():
 def user_portfolio():
     # Retrieve the user's cash balance (defaulting to 0 if none exists)
     user_balance = Balance.query.filter_by(user_id=current_user.id).first()
-    cash_balance = Decimal(user_balance.balance) if user_balance else Decimal("0.00")
+    cash_balance = Decimal(user_balance.balance).quantize(Decimal("0.01")) if user_balance else Decimal("0.00")
 
     # Retrieve all portfolio entries (stocks owned) for the user
     portfolio_entries = Portfolio.query.filter_by(user_id=current_user.id).all()
@@ -237,7 +237,7 @@ def user_portfolio():
         stocks_total += entry.quantity * Decimal(entry.current_price)
 
     # Total portfolio value is the sum of cash balance and stock holdings
-    total_portfolio_value = cash_balance + stocks_total
+    total_portfolio_value = (cash_balance + stocks_total).quantize(Decimal("0.01"))
 
     # Retrieve transaction history (if needed on this page)
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()

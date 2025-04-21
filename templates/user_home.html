@@ -26,11 +26,11 @@
                         <td>{{ stock.ticker_symbol }}</td>
                         <td>{{ stock.name }}</td>
                         <td>{{ stock.quantity }}</td>
-                        <td>${{ stock.price }}</td>
-                        <td>${{ stock.day_high }}</td>
-                        <td>${{ stock.day_low }}</td>
-                        <td>${{ stock.opening_price }}</td>
-                        <td>${{ stock.market_cap }}</td>
+                        <td>${{ stock.price | round(2) }}</td>
+                        <td>${{ stock.day_high | round(2) }}</td>
+                        <td>${{ stock.day_low | round(2) }}</td>
+                        <td>${{ stock.opening_price | round(2) }}</td>
+                        <td>${{ stock.market_cap | round(2) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

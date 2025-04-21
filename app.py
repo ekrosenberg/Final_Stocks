@@ -783,6 +783,13 @@ def admin_market_management():
         return redirect(url_for("admin_market_management"))
 
     market_hours = MarketHours.query.first()
+    
+    if market_hours:
+        if isinstance(market_hours.market_open_time, str):
+            market_hours.market_open_time = datetime.strptime(market_hours.market_open_time, "%H:%M:%S").time()
+        if isinstance(market_hours.market_close_time, str):
+            market_hours.market_close_time = datetime.strptime(market_hours.market_close_time, "%H:%M:%S").time()
+
     open_time = market_hours.market_open if market_hours else ""
     close_time = market_hours.market_close if market_hours else ""
     holidays = MarketHoliday.query.order_by(MarketHoliday.holiday_date.asc()).all()

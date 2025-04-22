@@ -458,7 +458,7 @@ def user_trades():
     cash_balance = user_balance.balance if user_balance else Decimal("0.00")
 
     if request.method == "GET":
-        get_flashed_messages()
+        _ = get_flashed_messages(with_categories=True)
     return render_template("user_trades.html", stocks=stocks, balance=cash_balance)
 
 @app.route('/user_transactions')

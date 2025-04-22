@@ -786,6 +786,13 @@ def admin_market_management():
     open_time = market_hours.market_open if market_hours else ""
     close_time = market_hours.market_close if market_hours else ""
     holidays = MarketHoliday.query.order_by(MarketHoliday.holiday_date.asc()).all()
+
+    for h in holidays:
+        if isinstance(h.holiday_date, str):
+            try:
+                h.holiday_date = datetime.strptime(h.holiday_date, "%Y-%m-%d").date()
+            except Exception:
+                h.holiday_date = None
     
     return render_template("admin_market_management.html", 
                            open_time=open_time, 

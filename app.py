@@ -802,6 +802,11 @@ def admin_market_management():
                            pending_close=pending_close,
                            holidays=holidays)
 
+@app.before_first_request
+def launch_randomizer():
+    print("Randomizer is now running.")
+    randomizer()
+
 #Ending block
 
 if __name__ == '__main__':

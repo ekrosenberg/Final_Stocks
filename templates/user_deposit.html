@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-4">
   <h1>Manage Cash</h1>
-  <p>Your current cash balance: ${{ balance }}</p>
+  <p>Your current cash balance: ${{ balance | round(2) }}</p>
 
   {% if session.pending_cash_transaction %}
   <div class="alert alert-warning">

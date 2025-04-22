@@ -31,7 +31,7 @@
                     <tr>
                         <td>{{ entry.stock.name }}</td>
                         <td>{{ entry.quantity }}</td>
-                        <td>${{ entry.current_price }}</td>
+                        <td>${{ entry.current_price | round(2) }}</td>
                         <td>${{ (entry.quantity * entry.current_price) | round(2) }}</td>
                     </tr>
                     {% endfor %}

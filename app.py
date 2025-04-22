@@ -126,6 +126,8 @@ def randomizer():
                 stock.day_low = stock.price
 
         for transaction in transactions:
+            if not transaction or not transaction.stock_symbol:
+                continue
             for stock in stocks:
                 if stock.ticker_symbol == transaction.stock_symbol:
                     transaction.price = stock.price
@@ -243,6 +245,8 @@ def user_portfolio():
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()
 
     for t in transactions:
+        if not t or not t.date:
+            continue
         if isinstance(t.date, str):
             try:
                 t.date = datetime.strptime(t.date, '%Y-%m-%d %H:%M:%S.%f')

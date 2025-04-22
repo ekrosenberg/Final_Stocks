@@ -788,7 +788,7 @@ def admin_market_management():
     holidays = MarketHoliday.query.order_by(MarketHoliday.holiday_date.asc()).all()
 
     for h in holidays:
-        if isinstance(h.holiday_date, str):
+        if h and isinstance(h.holiday_date, str):
             try:
                 h.holiday_date = datetime.strptime(h.holiday_date, "%Y-%m-%d").date()
             except Exception:

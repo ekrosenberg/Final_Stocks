@@ -106,7 +106,13 @@
             {% for holiday in holidays %}
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <strong>{{ holiday.holiday_date.strftime('%Y-%m-%d') }}</strong>
+                        <strong>
+                            {% if holiday.holiday_date %}
+                              {{ holiday.holiday_date.strftime('%Y-%m-%d') }}
+                            {% else %}
+                              Unknown Date
+                            {% endif %}
+                        </strong>
                         {% if holiday.description %} - {{ holiday.description }}{% endif %}
                     </div>
                     <form method="POST" action="{{ url_for('admin_market_management') }}">

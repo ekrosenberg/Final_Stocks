@@ -8,7 +8,6 @@
         <h4>Set Market Hours</h4>
     </div>
     <div class="card-body">
-        <!-- Market Hours Form -->
         <form method="POST" action="{{ url_for('admin_market_management') }}">
             <input type="hidden" name="form_type" value="hours">
             <input type="hidden" name="action" value="save_hours">
@@ -56,7 +55,6 @@
         <h4>Manage Market Holidays</h4>
     </div>
     <div class="card-body">
-        <!-- Form to add a holiday -->
         <form method="POST" action="{{ url_for('admin_market_management') }}">
             <input type="hidden" name="form_type" value="add_holiday">
             <input type="hidden" name="action" value="save_holiday">

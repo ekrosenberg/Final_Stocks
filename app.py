@@ -1,4 +1,9 @@
-# Python Imports
+#IFT401 Final Stocks Capstone Project created by
+#Ethan Rosenberg (ekrosenberg), Freddy Valencia (FlawedMangoes445), Zak Young (Zak-Young1)
+
+#Github : https://github.com/ekrosenberg/Final_Stocks
+
+# Initial Python Imports
 
 from flask import Flask, render_template, session, get_flashed_messages
 from flask_bootstrap import Bootstrap5
@@ -17,7 +22,8 @@ import threading
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 
-# Database Config
+# Database Config / AWS Setup
+
 app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SESSION_COOKIE_SAMESITE'] = "Lax"
 app.config['SESSION_COOKIE_SECURE'] = False
@@ -29,7 +35,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# User model creation for database and login
+# Database Table: Users
 
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +44,7 @@ class Users(UserMixin, db.Model):
     role = db.Column(db.String(50), default="user", nullable=False)
     portfolio = db.relationship('Portfolio', backref='user', lazy=True)
 
-# Stock model creation for database
+# Database Table: Stocks
 
 class Stocks(db.Model):
     __tablename__ = 'stocks'
@@ -52,7 +58,7 @@ class Stocks(db.Model):
     market_cap = db.Column(db.Numeric(15,2), default=0.00)
     opening_price = db.Column(db.Numeric(10,2), default=0.00)
      
-# Portfolio model creation for database
+# Database Table: Portfolio
 
 class Portfolio(db.Model):
     __tablename__ = 'portfolio'
@@ -64,7 +70,7 @@ class Portfolio(db.Model):
     current_price = db.Column(db.Numeric(10,2), nullable=False)
     stock = db.relationship("Stocks", backref="portfolios", lazy=True)
 
-# Transactions model creation for database
+# Database Table: Users
 
 class Transactions(db.Model):
     __tablename__ = 'transactions'
@@ -78,7 +84,8 @@ class Transactions(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     user = db.relationship('Users', backref='transactions', lazy=True)
 
-#Creates a model for the balance
+# Database Table: Balance
+
 class Balance(db.Model):
     __tablename__ = 'balance'
     id = db.Column(db.Integer, primary_key=True)
@@ -86,7 +93,8 @@ class Balance(db.Model):
     balance = db.Column(db.Numeric(10,2), nullable=False, default=0.00)
     user = db.relationship('Users', backref=db.backref('balance', uselist=False))
 
-# Market hours settings 
+# Database Table: Market Hours
+
 class MarketHours(db.Model):
     __tablename__ = 'market_hours'
     id = db.Column(db.Integer, primary_key=True)
@@ -95,7 +103,8 @@ class MarketHours(db.Model):
     market_open_time = db.Column(db.Time, default=dtime(9, 30))
     market_close_time = db.Column(db.Time, default=dtime(16, 0))
 
-# Market holidays settings
+# Database Table: Market Holiday
+
 class MarketHoliday(db.Model):
     __tablename__ = 'market_holidays'
     id = db.Column(db.Integer, primary_key=True)
@@ -141,33 +150,29 @@ def randomizer():
 
     threading.Timer(10, randomizer).start()
 
-# Creates table for the database
+# Loaders
 
 with app.app_context():
     db.create_all()
     randomizer()
 
-# User loader to retrieve id numbers
-
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(int(user_id))
 
-# Helper Function for Market Hours
+# Market Hours Function
+
 def is_market_open():
     now = datetime.now()
     weekday = now.weekday()
     
-    # Market is closed on weekends
     if weekday >= 5:
         return False
 
-    # Check if today is a holiday
     holiday = MarketHoliday.query.filter_by(holiday_date=now.date()).first()
     if holiday:
         return False
 
-    # Use market hours from the session or default to 9:30 AM - 4:00 PM
     open_time = session.get("market_open", "09:00")
     close_time = session.get("market_close", "16:00")
     open_dt = datetime.strptime(open_time, "%H:%M").time()
@@ -175,11 +180,13 @@ def is_market_open():
     
     return open_dt <= now.time() <= close_dt
 
-#Shared default, login, sign-up, and logout HTML pages between users and admins
+#App Route: Default
 
 @app.route('/')
 def home():
     return render_template("login.html")
+
+#App Route: Login
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -195,7 +202,9 @@ def login():
                 return redirect(url_for("user_portfolio"))
         else:
             flash("Invalid login information", "danger")
-    return render_template("login.html")          
+    return render_template("login.html")
+
+#App Route: Sign Up          
 
 @app.route('/sign_up', methods=["GET", "POST"])
 def register():
@@ -211,37 +220,36 @@ def register():
         return redirect(url_for("login"))
     return render_template("sign_up.html")
 
+#App Route: Logout
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for("login"))
 
-#User exclusive HTML pages
+#App Route: User Home
 
 @app.route('/user_home', methods=["GET", "POST"])
 def user_home():
     stocks = Stocks.query.all()
     return render_template('user_home.html', stocks=stocks)
 
+#App Route: User Portfolio
+
 @app.route('/user_portfolio')
 @login_required
 def user_portfolio():
-    # Retrieve the user's cash balance (defaulting to 0 if none exists)
     user_balance = Balance.query.filter_by(user_id=current_user.id).first()
     cash_balance = Decimal(user_balance.balance).quantize(Decimal("0.01")) if user_balance else Decimal("0.00")
 
-    # Retrieve all portfolio entries (stocks owned) for the user
     portfolio_entries = Portfolio.query.filter_by(user_id=current_user.id).all()
     
-    # Calculate the total value of stock holdings
     stocks_total = Decimal("0.00")
     for entry in portfolio_entries:
         stocks_total += entry.quantity * Decimal(entry.current_price)
 
-    # Total portfolio value is the sum of cash balance and stock holdings
     total_portfolio_value = (cash_balance + stocks_total).quantize(Decimal("0.01"))
 
-    # Retrieve transaction history (if needed on this page)
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()
 
     for t in transactions:
@@ -254,7 +262,7 @@ def user_portfolio():
                 try:
                     t.date = datetime.strptime(t.date, '%Y-%m-%d %H:%M:%S')
                 except ValueError:
-                    pass  # If it's not parsable, leave it as-is
+                    pass
 
     return render_template(
         'user_portfolio.html',
@@ -264,6 +272,7 @@ def user_portfolio():
         transactions=transactions
     )
 
+#App Route: User Trades
 
 @app.route('/user_trades', methods=["GET", "POST"])
 @login_required
@@ -271,7 +280,6 @@ def user_trades():
     if request.method == "POST":
         action = request.form.get("action")
 
-        # For both buy and sell actions, extract stock symbol and quantity
         if action in ["buy", "sell"]:
             if not is_market_open():
                 flash("Market is currently closed. Trading is allowed only during market hours.", "warning")
@@ -280,7 +288,7 @@ def user_trades():
             if action == "buy":
                 stock_symbol = request.form.get("buyStockSymbol", "").strip().upper()
                 quantity_str = request.form.get("buyQuantity", "").strip()
-            else:  # action == "sell"
+            else:  
                 stock_symbol = request.form.get("sellStockSymbol", "").strip().upper()
                 quantity_str = request.form.get("sellQuantity", "").strip()
 
@@ -304,7 +312,7 @@ def user_trades():
             total_price = stock.price * quantity
 
             if action == "buy":
-                # Save pending purchase transaction in session
+
                 session["pending_transaction"] = {
                     "action": "buy",
                     "stock_symbol": stock_symbol,
@@ -317,13 +325,13 @@ def user_trades():
                 return redirect(url_for("user_trades"))
             
             if action == "sell":
-                # Ensure the user has enough shares to sell
+
                 user_stock = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
                 if not user_stock or user_stock.quantity < quantity:
                     flash("You do not have enough shares to sell.", "danger")
                     session["just_flashed"] = True
                     return redirect(url_for("user_trades"))
-                # Save pending sale transaction in session
+
                 session["pending_transaction"] = {
                     "action": "sell",
                     "stock_symbol": stock_symbol,
@@ -335,7 +343,7 @@ def user_trades():
                 session["just_flashed"] = True
                 return redirect(url_for("user_trades"))
 
-        # Confirm Purchase Action
+
         elif action == "confirm_purchase":
             transaction = session.get("pending_transaction")
             if not transaction:
@@ -360,13 +368,9 @@ def user_trades():
                 session["just_flashed"] = True
                 return redirect(url_for("user_trades"))
 
-            # Deduct funds
             user_balance.balance = Decimal(user_balance.balance) - Decimal(total_price)
-
-            #Deduct stock quantity
             stock.quantity -= quantity
 
-            # Create a transaction record
             new_transaction = Transactions(
                 user_id=current_user.id,
                 stock_symbol=stock_symbol,
@@ -376,7 +380,6 @@ def user_trades():
                 total_amount=total_price
             )
 
-            # Update or add portfolio entry
             user_stock = Portfolio.query.filter_by(user_id=current_user.id, stock_id=stock.id).first()
             if user_stock:
                 user_stock.quantity += quantity
@@ -398,14 +401,12 @@ def user_trades():
             session["just_flashed"] = True
             return redirect(url_for("user_trades"))
 
-        # Cancel Purchase Action
         elif action == "cancel_purchase":
             session.pop("pending_transaction", None)
             flash("Purchase canceled.", "info")
             session["just_flashed"] = True
             return redirect(url_for("user_trades"))
 
-        # Confirm Sell Action
         elif action == "confirm_sell":
             transaction = session.get("pending_transaction")
             if not transaction:
@@ -429,22 +430,17 @@ def user_trades():
                 session["just_flashed"] = True
                 return redirect(url_for("user_trades"))
 
-            # Deduct shares from the portfolio
             user_stock.quantity -= quantity
             if user_stock.quantity == 0:
                 db.session.delete(user_stock)
 
-            # Add funds from sale to the user's balance
             user_balance = Balance.query.filter_by(user_id=current_user.id).first()
             if not user_balance:
                 user_balance = Balance(user_id=current_user.id, balance=0.00)
                 db.session.add(user_balance)
                 db.session.commit()
 
-            #Adds money to the users account
             user_balance.balance = Decimal(user_balance.balance) + Decimal(total_price)
-
-            #Adds sold quantity back to the stock quantity
             stock.quantity += quantity
 
             new_transaction = Transactions(
@@ -462,14 +458,12 @@ def user_trades():
             session["just_flashed"] = True
             return redirect(url_for("user_trades"))
 
-        # Cancel Sell Action
         elif action == "cancel_sell":
             session.pop("pending_transaction", None)
             flash("Sell transaction canceled.", "info")
             session["just_flashed"] = True
             return redirect(url_for("user_trades"))
 
-    # On GET, load available stocks and the users balance, then render the page.
     stocks = Stocks.query.all()
     user_balance = Balance.query.filter_by(user_id=current_user.id).first()
     cash_balance = user_balance.balance if user_balance else Decimal("0.00")
@@ -480,11 +474,15 @@ def user_trades():
 
     return render_template("user_trades.html", stocks=stocks, balance=cash_balance)
 
+#App Route: User Transactions
+
 @app.route('/user_transactions')
 @login_required
 def user_transactions():
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()
     return render_template('user_transactions.html', transactions=transactions)
+
+#App Route: User Deposit
 
 @app.route('/user_deposit', methods=["GET", "POST"])
 @login_required
@@ -492,7 +490,6 @@ def user_deposit():
     if request.method == "POST":
         action = request.form.get("action")
         
-        # Confirm or cancel pending deposit/withdrawal actions
         if action == "confirm_deposit":
             pending = session.get("pending_cash_transaction")
             if not pending or pending.get("action") != "deposit":
@@ -537,7 +534,6 @@ def user_deposit():
             flash("Withdrawal canceled.", "info")
             return redirect(url_for("user_deposit"))
         
-        # Confirm deposit or withdrawal
         amount_str = request.form.get("amount", "").strip()
         try:
             amount = Decimal(amount_str)
@@ -579,23 +575,22 @@ def user_deposit():
         
     return render_template("user_deposit.html", balance=user_balance.balance)
 
-#Admin exclusive HTML pages
+#App Route: Admin Dashboard
 
 @app.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
-    #checks if the current user has the admin role, if not redirects the user back to login
     if current_user.role != "admin":
         flash("Access denied.", "danger")
         return redirect(url_for("login"))
 
-    #Retrieves the needed data
     users = Users.query.all()
     stocks = Stocks.query.all()
     transactions = Transactions.query.all()
 
-    #Passes the data to the HTML file
     return render_template('admin_dashboard.html', users=users, stocks=stocks, transactions=transactions)
+
+#App Route: Admin Stock Management
 
 @app.route('/admin_stock_management', methods=["GET", "POST"])
 @login_required
@@ -608,7 +603,6 @@ def admin_stock_management():
         form_type = request.form.get("form_type")
         action = request.form.get("action")
         
-        # Create stock
         if form_type == "create_stock":
             if action == "save_stock":
                 session["pending_stock"] = {
@@ -644,7 +638,6 @@ def admin_stock_management():
                 flash("Stock creation canceled.", "info")
                 return redirect(url_for("admin_stock_management"))
         
-        # delete Stock
         elif form_type == "delete_stock":
             if action == "save_delete":
                 session["pending_delete"] = {
@@ -670,7 +663,6 @@ def admin_stock_management():
                 flash("Stock deletion canceled.", "info")
                 return redirect(url_for("admin_stock_management"))
         
-        # Update Stock Price
         elif form_type == "update_stock":
             if action == "save_update":
                 session["pending_update"] = {
@@ -699,6 +691,8 @@ def admin_stock_management():
     
     return render_template("admin_stock_management.html")
 
+#App Route: Admin Market Management
+
 @app.route('/admin_market_management', methods=["GET", "POST"])
 @login_required
 def admin_market_management():
@@ -714,7 +708,6 @@ def admin_market_management():
         form_type = request.form.get("form_type")
         action = request.form.get("action")
 
-        # Market Hours Change
         if form_type == "hours":
             if action == "save_hours":
                 open_time = request.form.get("open_time")
@@ -752,17 +745,12 @@ def admin_market_management():
                 session.pop("pending_close_time", None)
                 flash("Market hour update canceled.", "info")
         
-        # Add a Holiday 
         elif form_type == "add_holiday":
             if action == "save_holiday":
-                # Get the holiday date as a string directly from the form
                 holiday_date_str = request.form.get("holiday_date")
                 description = request.form.get("description")
-                # You can perform a quick check on the string format if needed.
                 try:
-                    # Validate the format; this will raise an exception if the format is incorrect.
                     datetime.strptime(holiday_date_str, "%Y-%m-%d")
-                    # Store the date string in session (as is)
                     session["pending_holiday_date"] = holiday_date_str
                     session["pending_holiday_description"] = description
                     flash(f"Are you sure you want to add a holiday on {holiday_date_str}?", "warning")
@@ -774,7 +762,6 @@ def admin_market_management():
                 pending_desc = session.pop("pending_holiday_description", "")
                 if pending_date_str:
                     try:
-                        # Convert the string to a date object
                         pending_date = datetime.strptime(pending_date_str, "%Y-%m-%d").date()
                         if MarketHoliday.query.filter_by(holiday_date=pending_date).first():
                             flash("A holiday for that date already exists.", "danger")
@@ -794,7 +781,6 @@ def admin_market_management():
                 flash("Holiday addition canceled.", "info")
                 return redirect(url_for("admin_market_management"))
                 
-        # Delete a Holiday 
         elif form_type == "delete_holiday":
             holiday_id = request.form.get("holiday_id")
             holiday = MarketHoliday.query.get(holiday_id)
@@ -826,6 +812,8 @@ def admin_market_management():
                            pending_open=pending_open,
                            pending_close=pending_close,
                            holidays=holidays)
+
+#Randomizer Loading
 
 @app.before_first_request
 def launch_randomizer():

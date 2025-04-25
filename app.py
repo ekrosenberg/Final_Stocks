@@ -248,7 +248,7 @@ def user_portfolio():
     for entry in portfolio_entries:
         stocks_total += entry.quantity * Decimal(entry.current_price)
 
-    total_portfolio_value = (cash_balance + stocks_total).quantize(Decimal("0.01"))
+    total_portfolio_value = (stocks_total).quantize(Decimal("0.01"))
 
     transactions = Transactions.query.filter_by(user_id=current_user.id).all()
 

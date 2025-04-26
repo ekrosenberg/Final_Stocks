@@ -170,7 +170,7 @@ def is_market_open():
     now = datetime.now(mountain)
     weekday = now.weekday()
     
-    if weekday >= 5:
+    if weekday >= 6:
         return False
 
     holiday = MarketHoliday.query.filter_by(holiday_date=now.date()).first()

@@ -90,10 +90,10 @@ class Balance(db.Model):
 class MarketHours(db.Model):
     __tablename__ = 'market_hours'
     id = db.Column(db.Integer, primary_key=True)
-    market_open = db.Column(db.String(5), default="09:30")
+    market_open = db.Column(db.String(5), default="06:30")
     market_close = db.Column(db.String(5), default="16:00")
 
-    market_open_time = db.Column(db.Time, default=dtime(9, 30))
+    market_open_time = db.Column(db.Time, default=dtime(6, 30))
     market_close_time = db.Column(db.Time, default=dtime(16, 0))
 
 # Market holidays settings
@@ -162,7 +162,7 @@ def is_market_open():
         return False
 
     # Use market hours from the session or default to 9:30 AM - 4:00 PM
-    open_time = session.get("market_open", "09:00")
+    open_time = session.get("market_open", "06:30")
     close_time = session.get("market_close", "16:00")
     open_dt = datetime.strptime(open_time, "%H:%M").time()
     close_dt = datetime.strptime(close_time, "%H:%M").time()

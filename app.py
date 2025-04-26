@@ -18,6 +18,8 @@ from datetime import datetime, time as dtime
 import time
 from decimal import Decimal
 import threading
+from datetime import datetime
+import pytz
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -163,7 +165,8 @@ def load_user(user_id):
 # Market Hours Function
 
 def is_market_open():
-    now = datetime.now()
+    mountain = pytz.timezone('US/Mountain')
+    now = datetime.now(mountain)
     weekday = now.weekday()
     
     if weekday >= 5:
@@ -184,7 +187,7 @@ def is_market_open():
         else:
             open_time = "09:00"
             close_time = "16:00"
-            
+
     open_dt = datetime.strptime(open_time, "%H:%M").time()
     close_dt = datetime.strptime(close_time, "%H:%M").time()
     

@@ -25,6 +25,8 @@
                     <th>Price</th>
                     <th>Day High</th>
                     <th>Day Low</th>
+                    <th>Opening Price</th>
+                    <th>Market Cap</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,9 +35,11 @@
                     <td>{{ stock.name }}</td>
                     <td>{{ stock.ticker_symbol }}</td>
                     <td>{{ stock.quantity }}</td>
-                    <td>{{ stock.price }}</td>
-                    <td>{{ stock.day_high }}</td>
-                    <td>{{ stock.day_low }}</td>
+                    <td>${{ stock.price | round(2) }}</td>
+                    <td>${{ stock.day_high | round(2) }}</td>
+                    <td>${{ stock.day_low | round(2) }}</td>
+                    <td>${{ stock.opening_price | round(2) }}</td>
+                    <td>${{ stock.market_cap | round(2) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -63,7 +67,7 @@
                     <td>{{ transaction.transaction_type }}</td>
                     <td>{{ transaction.stock_symbol }}</td>
                     <td>{{ transaction.quantity }}</td>
-                    <td>{{ transaction.total_amount }}</td>
+                    <td>${{ transaction.total_amount | round(2) }}</td>
                     <td>{{ transaction.date }}</td>
                 </tr>
                 {% endfor %}

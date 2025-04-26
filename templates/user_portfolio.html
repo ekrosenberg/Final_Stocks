@@ -31,8 +31,8 @@
                     <tr>
                         <td>{{ entry.stock.name }}</td>
                         <td>{{ entry.quantity }}</td>
-                        <td>${{ entry.current_price }}</td>
-                        <td>${{ entry.quantity * entry.current_price }}</td>
+                        <td>${{ entry.current_price | round(2) }}</td>
+                        <td>${{ (entry.quantity * entry.current_price) | round(2) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -61,7 +61,13 @@
               <tr>
                 <td>{{ transaction.id }}</td>
                 <td>{{ transaction.transaction_type }}</td>
-                <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                  {% if transaction.date.__class__.__name__ == 'datetime' %}
+                    {{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}
+                  {% else %}
+                    {{ transaction.date }}
+                  {% endif %}
+                </td>
                 <td>{{ transaction.stock_symbol }}</td>
                 <td>${{ "%.2f"|format(transaction.total_amount) }}</td>
                 <td>{{ transaction.quantity }}</td>
@@ -73,6 +79,3 @@
       </div>
     
 {% endblock %}
-
-
-<!-- footer broken here if someone can fix it tyty -->

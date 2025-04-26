@@ -177,9 +177,20 @@ def is_market_open():
     if holiday:
         return False
 
-    # Use market hours from the session or default to 9:30 AM - 4:00 PM
-    open_time = session.get("market_open", "09:00")
-    close_time = session.get("market_close", "16:00")
+    #check if hours are changed in the same session
+    open_time = session.get("market_open")
+    close_time = session.get("market_close")
+
+    # If session is missing, pull from database
+    if not open_time or not close_time:
+        market_hours = MarketHours.query.first()
+        if market_hours:
+            open_time = market_hours.market_open
+            close_time = market_hours.market_close
+        else:
+            open_time = "09:00"
+            close_time = "16:00"
+
     open_dt = datetime.strptime(open_time, "%H:%M").time()
     close_dt = datetime.strptime(close_time, "%H:%M").time()
     

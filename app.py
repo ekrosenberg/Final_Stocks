@@ -170,7 +170,7 @@ def is_market_open():
     now = datetime.now(mountain)
     weekday = now.weekday()
     
-    if weekday >= 6:
+    if weekday >= 5:
         return False
 
     holiday = MarketHoliday.query.filter_by(holiday_date=now.date()).first()
@@ -212,8 +212,6 @@ def login():
         user = Users.query.filter_by(username=request.form.get("username")).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
-            session.pop("market_open", None)
-            session.pop("market_close", None)
             if user.role == "admin":
                 return redirect(url_for("admin_dashboard"))
             else:

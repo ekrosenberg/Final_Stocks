@@ -212,6 +212,8 @@ def login():
         user = Users.query.filter_by(username=request.form.get("username")).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
+            session.pop("market_open", None)
+            session.pop("market_close", None)
             if user.role == "admin":
                 return redirect(url_for("admin_dashboard"))
             else:
